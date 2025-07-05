@@ -1,13 +1,13 @@
 name: バグ報告
 description: バグや不具合を報告する際に使用してください
-title: "[BUG] "
-labels: ["bug"]
+title: '[BUG] '
+labels: ['bug']
 body:
   - type: markdown
     attributes:
       value: |
         バグ報告をありがとうございます。以下の項目を埋めてください。
-        
+
   - type: input
     id: summary
     attributes:
@@ -16,19 +16,19 @@ body:
       placeholder: 例：X投稿機能でエラーが発生する
     validations:
       required: true
-      
+
   - type: textarea
     id: reproduction-steps
     attributes:
       label: 再現手順
       description: バグを再現する手順を順番に記載してください
       placeholder: |
-        1. 
-        2. 
-        3. 
+        1.
+        2.
+        3.
     validations:
       required: true
-      
+
   - type: textarea
     id: expected-behavior
     attributes:
@@ -37,7 +37,7 @@ body:
       placeholder: 正常にXに投稿される
     validations:
       required: true
-      
+
   - type: textarea
     id: actual-behavior
     attributes:
@@ -46,7 +46,7 @@ body:
       placeholder: エラーメッセージが表示されて処理が停止する
     validations:
       required: true
-      
+
   - type: textarea
     id: error-logs
     attributes:
@@ -55,7 +55,7 @@ body:
       render: shell
     validations:
       required: false
-      
+
   - type: dropdown
     id: environment-os
     attributes:
@@ -68,7 +68,7 @@ body:
         - その他
     validations:
       required: true
-      
+
   - type: textarea
     id: additional-context
     attributes:
