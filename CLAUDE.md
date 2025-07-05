@@ -49,6 +49,31 @@ The repository includes an issue assignment automation workflow:
 This project appears to be in early development stages with no source code yet implemented. The
 notification bot functionality for manifesto policy updates is yet to be developed.
 
+## MUST Rules for Development Workflow
+
+When working on this project, the following rules MUST be followed:
+
+### Work Cycle
+
+1. **One task at a time**: Work on tasks sequentially, not in parallel
+2. **Create TODO.md**: Track all tasks with checkboxes in TODO.md file
+3. **Verify after each task**: After completing each task, MUST run:
+   - `deno task test` - Run all tests
+   - `deno task lint` - Check code quality
+   - `deno task fmt` - Format code
+4. **Wait for approval**: After completing a task, notify completion and wait for review before
+   proceeding to the next task
+5. **Commit frequently**: Commit changes after each major task completion (excluding TODO.md unless
+   specifically requested)
+
+### Code Quality Standards
+
+- All code must pass lint checks with Deno's recommended rules
+- Code formatting must follow the project's fmt configuration:
+  - Single quotes for strings
+  - 2 spaces indentation
+  - Line width: 100 characters
+
 ## License
 
 This project is licensed under GNU AGPL v3, which requires:
