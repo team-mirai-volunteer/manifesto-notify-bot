@@ -78,6 +78,11 @@ When working on this project, the following rules MUST be followed:
   - Define explicit return types
   - Use type guards when necessary
   - Let TypeScript infer types naturally
+- **Comments**: Follow "Code Tells You How, Comments Tell You Why" principle
+  - Write self-documenting code with clear names and structure
+  - Only add comments to explain WHY decisions were made
+  - Avoid comments that describe WHAT the code does
+  - Document complex business logic, edge cases, or non-obvious implementations
 
 ## License
 
