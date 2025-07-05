@@ -73,6 +73,11 @@ When working on this project, the following rules MUST be followed:
   - Single quotes for strings
   - 2 spaces indentation
   - Line width: 100 characters
+- **Type Safety**: NEVER use `as` for type casting. Instead:
+  - Use proper type generics for functions
+  - Define explicit return types
+  - Use type guards when necessary
+  - Let TypeScript infer types naturally
 
 ## License
 
