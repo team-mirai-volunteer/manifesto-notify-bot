@@ -46,13 +46,7 @@
 - [x] テスト実行の確認（`deno task test`）
 - [x] テストヘルパー関数の作成
 
-## 6. 開発支援ツールの設定
+## 6. ドキュメントの更新
 
-- [ ] VSCode設定ファイル（`.vscode/settings.json`）
-- [ ] デバッグ設定（`.vscode/launch.json`）
-- [ ] 推奨拡張機能（`.vscode/extensions.json`）
-
-## 7. ドキュメントの更新
-
-- [ ] README.md の更新（セットアップ手順、開発フロー）
-- [ ] CONTRIBUTING.md の作成（コントリビューション方法）
+- [x] README.md の更新（セットアップ手順、開発フロー）
+- [x] CONTRIBUTING.md の作成（コントリビューション方法）
