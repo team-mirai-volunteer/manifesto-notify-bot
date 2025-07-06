@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+deno.lock
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Test coverage
+coverage/
+
+# Build outputs
+dist/
+build/
+
+# Temporary files
+*.tmp
+*.temp

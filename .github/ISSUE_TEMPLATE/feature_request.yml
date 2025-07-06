@@ -1,13 +1,13 @@
 name: 機能要望
 description: 新機能や改善の提案をする際に使用してください
-title: "[FEATURE] "
-labels: ["enhancement"]
+title: '[FEATURE] '
+labels: ['enhancement']
 body:
   - type: markdown
     attributes:
       value: |
         機能要望をありがとうございます。以下の項目を埋めてください。
-        
+
   - type: input
     id: feature-summary
     attributes:
@@ -16,7 +16,7 @@ body:
       placeholder: 例：Slackにも通知する
     validations:
       required: true
-      
+
   - type: textarea
     id: background
     attributes:
@@ -24,15 +24,15 @@ body:
       description: なぜこの機能が必要なのか、どのような課題を解決するのか記載してください
       placeholder: |
         現在の課題：
-        - 
-        - 
-        
+        -
+        -
+
         解決したい理由：
-        - 
-        - 
+        -
+        -
     validations:
       required: true
-      
+
   - type: dropdown
     id: feature-category
     attributes:
@@ -48,7 +48,7 @@ body:
         - その他
     validations:
       required: true
-      
+
   - type: dropdown
     id: priority
     attributes:
@@ -60,7 +60,7 @@ body:
         - Low（あれば良い機能）
     validations:
       required: true
-      
+
   - type: textarea
     id: proposal
     attributes:
@@ -68,15 +68,15 @@ body:
       description: 具体的にどのような機能・実装を提案するか詳しく記載してください
       placeholder: |
         具体的な機能内容：
-        - 
-        - 
-        
+        -
+        -
+
         実装方法のアイデア：
-        - 
-        - 
+        -
+        -
     validations:
       required: true
-      
+
   - type: textarea
     id: expected-benefits
     attributes:
@@ -84,15 +84,15 @@ body:
       description: この機能によってどのような効果が期待できるか記載してください
       placeholder: |
         ユーザーへの効果：
-        - 
-        - 
-        
+        -
+        -
+
         システムへの効果：
-        - 
-        - 
+        -
+        -
     validations:
       required: true
-      
+
   - type: checkboxes
     id: affected-components
     attributes:
@@ -102,7 +102,7 @@ body:
         - label: Webサーバー
         - label: 設定管理
         - label: CI/CD
-      
+
   - type: textarea
     id: implementation-ideas
     attributes:
@@ -111,7 +111,7 @@ body:
       render: typescript
     validations:
       required: false
-      
+
   - type: textarea
     id: references
     attributes:
@@ -122,7 +122,7 @@ body:
         - 関連するIssue: #123
     validations:
       required: false
-      
+
   - type: textarea
     id: additional-notes
     attributes:
