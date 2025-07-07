@@ -83,6 +83,9 @@ When working on this project, the following rules MUST be followed:
   - Only add comments to explain WHY decisions were made
   - Avoid comments that describe WHAT the code does
   - Document complex business logic, edge cases, or non-obvious implementations
+- **Dependencies**: NEVER use deno.land/x imports. Always use JSR (jsr:) for dependencies
+  - deno.land/x is deprecated
+  - JSR is the official package registry for Deno
 
 ## License
 
