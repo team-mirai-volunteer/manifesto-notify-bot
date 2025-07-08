@@ -75,6 +75,7 @@ When working on this project, the following rules MUST be followed:
 3. **REFACTOR Phase (MUST)**: Improve code quality ONLY after tests are green
 
 **Violations of TDD approach are NOT acceptable:**
+
 - ❌ Writing production code without a failing test
 - ❌ Writing more code than needed to pass the test
 - ❌ Refactoring when tests are not green
@@ -133,7 +134,7 @@ This project follows specific patterns that MUST be maintained:
 - **Dependency Injection**: Use constructor injection for all dependencies
   - Repositories, services, and external APIs must be injected
   - Never access global state or environment variables directly in business logic
-- **Hono + Deno KV + OpenAI Integration**: 
+- **Hono + Deno KV + OpenAI Integration**:
   - Use Hono for HTTP handling with middleware pattern
   - Deno KV for persistence with key-value structure
   - OpenAI API integration through service layer
