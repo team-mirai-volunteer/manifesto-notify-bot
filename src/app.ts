@@ -20,8 +20,8 @@ export async function createApp(kv?: Deno.Kv): Promise<Hono> {
   // 依存関係の構築
   const kvInstance = kv || await Deno.openKv();
   const manifestoRepo = createManifestoRepository(kvInstance);
-  const openaiService = createLLMService(openaiApiKey);
-  const manifestoHandlers = createManifestoHandlers(manifestoRepo, openaiService);
+  const llmService = createLLMService(openaiApiKey);
+  const manifestoHandlers = createManifestoHandlers(manifestoRepo, llmService);
 
   const app = new Hono();
 
@@ -34,8 +34,7 @@ export async function createApp(kv?: Deno.Kv): Promise<Hono> {
   app.use('/api/*', bearerAuth());
 
   // APIエンドポイント
-  app.post('/api/manifestos', manifestoHandlers.create);
+  app.post('/api/manifestos', ...manifestoHandlers.create);
 
   return app;
 }
-

@@ -25,4 +25,3 @@ export type ErrorResponse = {
   /** エラーメッセージ */
   error: string;
 };
-

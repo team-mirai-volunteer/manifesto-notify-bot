@@ -32,6 +32,7 @@ src/
 ### 各層の責務
 
 #### 1. Types（型定義）
+
 APIのリクエスト/レスポンスやドメインモデルの型を定義します。
 
 - `types/models/` - ドメインモデルの型定義
@@ -56,6 +57,7 @@ export type ApiResponse<T> = {
 ```
 
 #### 2. Repositories（データアクセス層）
+
 データの永続化と取得を担当します。外部ストレージ（Deno KV）とのやり取りを抽象化します。
 
 ```typescript
@@ -78,11 +80,12 @@ export function createRepository<T>(kv: Deno.Kv, prefix: string): Repository<T> 
 ```
 
 #### 3. Handlers（HTTPハンドラー）
+
 HTTPリクエストの処理を担当します。バリデーション、データ変換、レスポンス生成を行います。
 
 ```typescript
 // 参考実装例
-import type { Context } from "hono";
+import type { Context } from 'hono';
 
 export type Handler = (c: Context) => Promise<Response> | Response;
 
@@ -95,65 +98,67 @@ export function createHandlers<T>(repository: Repository<T>): Handlers {
     async create(c: Context) {
       const body = await c.req.json();
       // バリデーション、データ変換、保存処理
-      return c.json({ id: "created-id" }, 201);
+      return c.json({ id: 'created-id' }, 201);
     },
     async get(c: Context) {
-      const id = c.req.param("id");
+      const id = c.req.param('id');
       const entity = await repository.findById(id);
-      return entity ? c.json(entity) : c.json({ error: "Not found" }, 404);
-    }
+      return entity ? c.json(entity) : c.json({ error: 'Not found' }, 404);
+    },
   };
 }
 ```
 
 #### 4. Middleware（共通処理）
+
 認証やロギングなど、複数のエンドポイントで使用する共通処理を実装します。
 
 ```typescript
 // middleware/auth.ts
 export function bearerAuth() {
   return async (c: Context, next: Next) => {
-    const authHeader = c.req.header("Authorization");
-    
-    if (!authHeader?.startsWith("Bearer ")) {
-      return c.json({ error: "Unauthorized" }, 401);
+    const authHeader = c.req.header('Authorization');
+
+    if (!authHeader?.startsWith('Bearer ')) {
+      return c.json({ error: 'Unauthorized' }, 401);
     }
-    
+
     const token = authHeader.substring(7);
-    
+
     // 環境変数のトークンと照合
-    if (token !== Deno.env.get("API_TOKEN")) {
-      return c.json({ error: "Invalid token" }, 401);
+    if (token !== Deno.env.get('API_TOKEN')) {
+      return c.json({ error: 'Invalid token' }, 401);
     }
-    
+
     await next();
   };
 }
 ```
 
 #### 5. App（アプリケーション本体）
+
 ルーティングとミドルウェアの設定を行います。各ハンドラーを統合します。
 
 ```typescript
 // 参考実装例
-import { Hono } from "hono";
-import { logger } from "hono/logger";
+import { Hono } from 'hono';
+import { logger } from 'hono/logger';
 
 export async function createApp(dependencies: AppDependencies): Promise<Hono> {
   const app = new Hono();
-  
+
   // グローバルミドルウェア
-  app.use("*", logger());
-  
+  app.use('*', logger());
+
   // 認証が必要なルート
-  app.use("/api/*", dependencies.authMiddleware);
-  
+  app.use('/api/*', dependencies.authMiddleware);
+
   // ルーティング設定
-  app.route("/api/resource", dependencies.resourceHandlers);
-  
+  app.route('/api/resource', dependencies.resourceHandlers);
+
   // ヘルスチェック
-  app.get("/health", (c) => c.json({ status: "ok" }));
-  
+  app.get('/health', (c) => c.json({ status: 'ok' }));
+
   return app;
 }
 ```
@@ -161,15 +166,18 @@ export async function createApp(dependencies: AppDependencies): Promise<Hono> {
 ## API設計原則
 
 ### RESTful API
+
 - リソース指向のURL設計
 - 適切なHTTPメソッドの使用
 - ステータスコードによる状態表現
 
 ### 認証
+
 - Bearer tokenによる認証を基本とする
 - 環境変数での管理から始め、必要に応じて高度化
 
 ### エラーハンドリング
+
 - 一貫したエラーレスポンス形式
 - 適切なHTTPステータスコード
 - 詳細なエラーメッセージ
@@ -177,16 +185,19 @@ export async function createApp(dependencies: AppDependencies): Promise<Hono> {
 ## 設計方針
 
 ### 1. シンプルさを重視
+
 - 必要最小限の構造で開始
 - 複雑な抽象化は避ける
 - コードの可読性を優先
 
 ### 2. テスタビリティ
+
 - 関数型プログラミングアプローチ
 - 依存性注入によるモック化
 - 各層を独立してテスト可能
 
 ### 3. 段階的な拡張
+
 - 最初は基本機能のみ実装
 - 必要に応じて機能追加
 - リファクタリングしやすい設計
@@ -194,13 +205,15 @@ export async function createApp(dependencies: AppDependencies): Promise<Hono> {
 ## テスト戦略
 
 ### ユニットテスト
+
 各層を独立してテストします。
 
 - **Repositories**: インメモリKVを使用した統合テスト
-- **Handlers**: モックリポジトリを使用したユニットテスト  
+- **Handlers**: モックリポジトリを使用したユニットテスト
 - **Middleware**: リクエスト/レスポンスのモックを使用
 
 ### テストの原則
+
 - 各層を独立してテスト可能に
 - 外部依存はモック化
 - テストファーストアプローチ（TDD）

@@ -1,4 +1,4 @@
-import type { Manifesto } from "../types/models/manifesto.ts";
+import type { Manifesto } from '../types/models/manifesto.ts';
 
 /**
  * マニフェストリポジトリのインターフェース
@@ -9,7 +9,7 @@ export type ManifestoRepository = {
    * @param manifesto 保存するマニフェスト
    */
   save(manifesto: Manifesto): Promise<void>;
-  
+
   /**
    * IDからマニフェストを取得する
    * @param id マニフェストID
@@ -26,11 +26,11 @@ export type ManifestoRepository = {
 export function createManifestoRepository(kv: Deno.Kv): ManifestoRepository {
   return {
     async save(manifesto: Manifesto): Promise<void> {
-      await kv.set(["manifestos", manifesto.id], manifesto);
+      await kv.set(['manifestos', manifesto.id], manifesto);
     },
-    
+
     async findById(id: string): Promise<Manifesto | null> {
-      const result = await kv.get<Manifesto>(["manifestos", id]);
+      const result = await kv.get<Manifesto>(['manifestos', id]);
       return result.value;
     },
   };
