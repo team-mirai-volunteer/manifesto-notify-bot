@@ -17,6 +17,11 @@ export async function createApp(kv?: Deno.Kv): Promise<Hono> {
     throw new Error('OPENAI_API_KEY environment variable is required');
   }
 
+  const apiToken = Deno.env.get('API_TOKEN');
+  if (!apiToken) {
+    throw new Error('API_TOKEN environment variable is required');
+  }
+
   // 依存関係の構築
   const kvInstance = kv || await Deno.openKv();
   const manifestoRepo = createManifestoRepository(kvInstance);
@@ -31,7 +36,7 @@ export async function createApp(kv?: Deno.Kv): Promise<Hono> {
   app.get('/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOString() }));
 
   // API認証ミドルウェア
-  app.use('/api/*', bearerAuth());
+  app.use('/api/*', bearerAuth(apiToken));
 
   // APIエンドポイント
   app.post('/api/manifestos', ...manifestoHandlers.create);

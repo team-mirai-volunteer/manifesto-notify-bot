@@ -22,9 +22,6 @@ type CreateManifestoInput = z.infer<typeof createManifestoSchema>;
 // バリデーターの定義
 const createManifestoValidator = zValidator('json', createManifestoSchema);
 
-/**
- * 作成ハンドラーを生成する
- */
 function createHandler(
   repo: ManifestoRepository,
   llm: LLMService,
@@ -58,16 +55,12 @@ function createHandler(
   };
 }
 
-/**
- * マニフェストハンドラーを作成する
- * @param repo マニフェストリポジトリ
- * @param llm LLMサービス
- * @returns マニフェストハンドラー
- */
 export function createManifestoHandlers(
   repo: ManifestoRepository,
   llm: LLMService,
-) {
+): {
+  create: [typeof createManifestoValidator, (c: Context) => Promise<Response>];
+} {
   return {
     create: [
       createManifestoValidator,

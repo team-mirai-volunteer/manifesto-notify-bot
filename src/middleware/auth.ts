@@ -1,11 +1,8 @@
 import type { Context, Next } from 'hono';
 
-/**
- * Bearer認証ミドルウェア
- * 環境変数のAPI_TOKENと照合する
- * @returns Honoミドルウェア
- */
-export function bearerAuth() {
+export function bearerAuth(
+  expectedToken: string,
+): (c: Context, next: Next) => Promise<void | Response> {
   return async (c: Context, next: Next) => {
     const authHeader = c.req.header('Authorization');
 
@@ -21,13 +18,6 @@ export function bearerAuth() {
 
     // トークンの抽出
     const token = authHeader.substring(7);
-
-    // 環境変数のトークンと照合
-    const expectedToken = Deno.env.get('API_TOKEN');
-    if (!expectedToken) {
-      console.error('API_TOKEN environment variable not set');
-      return c.json({ error: 'Server configuration error' }, 500);
-    }
 
     if (token !== expectedToken) {
       return c.json({ error: 'Invalid token' }, 401);
