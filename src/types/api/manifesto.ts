@@ -1,3 +1,5 @@
+import type { Manifesto } from '../models/manifesto.ts';
+
 export type CreateManifestoRequest = {
   title: string;
   content: string;
@@ -10,4 +12,8 @@ export type CreateManifestoResponse = {
 
 export type ErrorResponse = {
   error: string;
+};
+
+export type ListManifestoResponse = {
+  manifestos: Manifesto[];
 };

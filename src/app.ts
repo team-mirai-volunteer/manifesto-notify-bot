@@ -40,6 +40,7 @@ export async function createApp(kv?: Deno.Kv): Promise<Hono> {
 
   // APIエンドポイント
   app.post('/api/manifestos', ...manifestoHandlers.create);
+  app.get('/api/manifestos', manifestoHandlers.list);
 
   return app;
 }

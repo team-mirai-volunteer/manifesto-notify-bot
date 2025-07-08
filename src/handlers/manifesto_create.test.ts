@@ -20,6 +20,10 @@ function createMockRepository(): ManifestoRepository {
     async findById(id: string): Promise<Manifesto | null> {
       return saved.find((m) => m.id === id) || null;
     },
+    // deno-lint-ignore require-await
+    async findAll(): Promise<Manifesto[]> {
+      return saved;
+    },
   };
 }
 
@@ -146,5 +150,55 @@ Deno.test('マニフェスト作成ハンドラー', async (t) => {
     assertEquals(res.status, 500);
     const json = await res.json();
     assertEquals(json.error, 'Internal server error');
+  });
+});
+
+Deno.test('マニフェスト一覧取得ハンドラー', async (t) => {
+  function setupListTestApp(repo: ManifestoRepository): Hono {
+    const app = new Hono();
+    const handlers = createManifestoHandlers(repo, createMockLLMService('テスト要約'));
+
+    // list ハンドラーはまだ実装されていないのでエラーになる
+    app.get('/test/list', handlers.list);
+    return app;
+  }
+
+  await t.step('空のリストを返す', async () => {
+    const app = setupListTestApp(createMockRepository());
+
+    const res = await app.request('/test/list', {
+      method: 'GET',
+    });
+
+    assertEquals(res.status, 200);
+    const json = await res.json();
+    assertEquals(json.manifestos, []);
+  });
+
+  await t.step('保存されたマニフェストを返す', async () => {
+    const repo = createMockRepository();
+
+    // テスト用データを事前に保存
+    const testManifesto: Manifesto = {
+      id: 'test-id',
+      title: 'テストタイトル',
+      summary: 'テスト要約',
+      content: 'テスト内容',
+      githubPrUrl: TEST_GITHUB_PR_URL,
+      createdAt: new Date('2023-01-01T00:00:00Z'),
+    };
+    await repo.save(testManifesto);
+
+    const app = setupListTestApp(repo);
+
+    const res = await app.request('/test/list', {
+      method: 'GET',
+    });
+
+    assertEquals(res.status, 200);
+    const json = await res.json();
+    assertEquals(json.manifestos.length, 1);
+    assertEquals(json.manifestos[0].id, 'test-id');
+    assertEquals(json.manifestos[0].title, 'テストタイトル');
   });
 });
