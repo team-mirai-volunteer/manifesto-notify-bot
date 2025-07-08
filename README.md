@@ -5,101 +5,83 @@
 ## 概要
 
 このプロジェクトは、チームみらいのマニフェスト更新を定期的にSNSに通知するbotです。
-過去のマニフェストをデータベースに保存し、スケジューラーを使って定期的に投稿します。
+[team-mirai/policy](https://github.com/team-mirai/policy)リポジトリのPRがマージされた際にマニフェスト情報を受け取り、要約を生成して保存します。
 
 ## 技術スタック
 
 - **ランタイム**: Deno 2.x
 - **フレームワーク**: Hono v4
+- **データベース**: Deno KV
+- **AI**: OpenAI API（要約生成）
+- **デプロイ先**: Deno Deploy
 - **言語**: TypeScript
-- **アーキテクチャ**: Evans DDD (ミニマル構成)
-- **デプロイ**: Google Cloud Platform
-  - Cloud Run (API)
-  - Firestore または Cloud SQL (データベース)
-  - Cloud Scheduler (定期実行)
 
 ## セットアップ
 
 ### 前提条件
 
 - Deno 2.x がインストールされていること
-- Git がインストールされていること
+- OpenAI APIキーを取得していること
 
 ### インストール手順
 
 1. リポジトリをクローン
 
 ```bash
-git clone https://github.com/team-mirai-volunteer/manifesto-notify-bot.git
-cd manifesto-notify-bot
+$ git clone https://github.com/team-mirai-volunteer/manifesto-notify-bot.git
+$ cd manifesto-notify-bot
 ```
 
 2. 環境変数の設定
 
 ```bash
-cp .env.example .env
-# .envファイルを編集して必要な環境変数を設定
+export API_TOKEN=your-api-token
+export OPENAI_API_KEY=your-openai-api-key
 ```
 
-3. 依存関係の確認
-
-```bash
-deno task check
-```
-
-## 開発フロー
+## 開発
 
 ### 開発サーバーの起動
 
 ```bash
-deno task dev
+$ deno run dev
 ```
 
 ### テストの実行
 
 ```bash
-deno task test
+# すべてのテストを実行
+$ deno run test
+
+# 特定のテストを実行
+$ deno run test src/repositories/manifesto.test.ts
 ```
 
 ### コード品質チェック
 
 ```bash
-# 個別実行
-deno task lint  # Lintチェック
-deno task fmt   # フォーマットチェック
-
-# まとめて実行
-deno task check # lint + fmt + test
+$ deno run check
 ```
 
 ## プロジェクト構造
 
 ```
 src/
-├── domain/           # ドメイン層
-│   ├── manifesto/   # マニフェスト集約
-│   └── notification/ # 通知値オブジェクト
-├── application/      # アプリケーション層
-│   ├── manifesto/   # マニフェストユースケース
-│   └── notification/ # 通知ユースケース
-├── infrastructure/   # インフラストラクチャ層
-│   ├── repository/  # リポジトリ実装
-│   └── service/     # 外部サービス連携
-├── presentation/     # プレゼンテーション層
-│   ├── handler/     # HTTPハンドラー
-│   └── middleware/  # ミドルウェア
-├── shared/          # 共通コンポーネント
-│   └── config/      # 設定
-├── test/            # テストヘルパー
-├── app.ts           # Honoアプリケーション設定
-├── app.test.ts      # アプリケーションテスト
-└── main.ts          # エントリーポイント
+├── types/          # 型定義
+│   ├── api/       # APIリクエスト/レスポンス型
+│   └── models/    # ドメインモデル型
+├── handlers/       # HTTPハンドラー
+├── repositories/   # データアクセス層
+├── services/       # 外部サービス連携
+├── middleware/     # 認証などの共通処理
+├── app.ts         # アプリケーション本体
+└── main.ts        # エントリーポイント
 ```
 
-## API エンドポイント
+## ドキュメント
 
-- `GET /` - ウェルカムメッセージ
-- `GET /health` - ヘルスチェック
+- [アーキテクチャ設計](./docs/architecture.md)
+- [マニフェスト登録API設計](./docs/manifesto-registration-api.md)
 
 ## ライセンス
 
