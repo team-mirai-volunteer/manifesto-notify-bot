@@ -4,8 +4,9 @@
 
 ## 概要
 
-このプロジェクトは、チームみらいのマニフェスト更新を定期的にSNSに通知するbotです。
-[team-mirai/policy](https://github.com/team-mirai/policy)リポジトリのPRがマージされた際にマニフェスト情報を受け取り、要約を生成して保存します。
+このプロジェクトは、チームみらいのマニフェスト更新をSNSに通知するbotです。
+[team-mirai/policy](https://github.com/team-mirai/policy)リポジトリのPR
+URLを受け取り、自動的にマニフェストの要約を生成してX（Twitter）などのプラットフォームに投稿します。
 
 ## 技術スタック
 
@@ -22,6 +23,7 @@
 
 - Deno 2.x がインストールされていること
 - OpenAI APIキーを取得していること
+- X（Twitter）API認証情報を取得していること（通知機能を使用する場合）
 
 ### インストール手順
 
@@ -34,9 +36,21 @@ $ cd manifesto-notify-bot
 
 2. 環境変数の設定
 
+`.env.example`を参考に環境変数を設定してください。
+
 ```bash
+# 必須設定
 export API_TOKEN=your-api-token
 export OPENAI_API_KEY=your-openai-api-key
+
+# オプション設定
+export GITHUB_TOKEN=your-github-token  # 未設定の場合は公開リポジトリの読み取り専用
+
+# X通知を有効にする場合（4つすべて必須）
+export X_API_KEY=your-x-api-key
+export X_API_KEY_SECRET=your-x-api-key-secret
+export X_ACCESS_TOKEN=your-x-access-token
+export X_ACCESS_TOKEN_SECRET=your-x-access-token-secret
 ```
 
 ## 開発
@@ -81,7 +95,7 @@ src/
 ## ドキュメント
 
 - [アーキテクチャ設計](./docs/architecture.md)
-- [マニフェスト登録API設計](./docs/manifesto-registration-api.md)
+- [マニフェスト通知API設計](./docs/manifesto-registration-api.md)
 
 ## ライセンス
 

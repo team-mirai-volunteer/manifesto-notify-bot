@@ -70,11 +70,11 @@
 
 ### 環境変数
 
-- [ ] `.env.example`に新しい環境変数を追加
-  - [ ] `X_API_KEY`（X API用）
-  - [ ] `X_API_SECRET`
-  - [ ] `X_ACCESS_TOKEN`
-  - [ ] `X_ACCESS_TOKEN_SECRET`
+- [x] `.env.example`に新しい環境変数を追加
+  - [x] `X_API_KEY`（X API用）
+  - [x] `X_API_KEY_SECRET`
+  - [x] `X_ACCESS_TOKEN`
+  - [x] `X_ACCESS_TOKEN_SECRET`
 
 ### テスト
 
@@ -83,8 +83,8 @@
 
 ### ドキュメント
 
-- [ ] README.mdのAPI仕様リンクを`docs/manifesto-registration-api.md`に更新
-- [ ] 環境変数の設定方法を追記
+- [x] README.mdのAPI仕様リンクを`docs/manifesto-registration-api.md`に更新
+- [x] 環境変数の設定方法を追記
 
 ## 5. 追加考慮事項
 
