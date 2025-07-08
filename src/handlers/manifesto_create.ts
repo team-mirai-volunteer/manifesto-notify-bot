@@ -22,32 +22,6 @@ type CreateManifestoInput = z.infer<typeof createManifestoSchema>;
 // バリデーターの定義
 const createManifestoValidator = zValidator('json', createManifestoSchema);
 
-export type ManifestoHandlers = {
-  create: [
-    ReturnType<typeof zValidator>,
-    (c: Context) => Promise<Response>,
-  ];
-};
-
-/**
- * 新しいマニフェストを作成する
- */
-async function createManifesto(
-  input: CreateManifestoInput,
-  llm: LLMService,
-): Promise<Manifesto> {
-  const summary = await llm.generateSummary(input.content);
-
-  return {
-    id: crypto.randomUUID(),
-    title: input.title,
-    summary,
-    content: input.content,
-    githubPrUrl: input.githubPrUrl,
-    createdAt: new Date(),
-  };
-}
-
 /**
  * 作成ハンドラーを生成する
  */
@@ -58,7 +32,20 @@ function createHandler(
   return async (c: Context) => {
     try {
       const validatedData = await c.req.json<CreateManifestoInput>();
-      const manifesto = await createManifesto(validatedData, llm);
+
+      // 要約を生成
+      const summary = await llm.generateSummary(validatedData.content);
+
+      // マニフェストを作成
+      const manifesto: Manifesto = {
+        id: crypto.randomUUID(),
+        title: validatedData.title,
+        summary,
+        content: validatedData.content,
+        githubPrUrl: validatedData.githubPrUrl,
+        createdAt: new Date(),
+      };
+
       await repo.save(manifesto);
 
       const response: CreateManifestoResponse = { id: manifesto.id };
@@ -80,7 +67,7 @@ function createHandler(
 export function createManifestoHandlers(
   repo: ManifestoRepository,
   llm: LLMService,
-): ManifestoHandlers {
+) {
   return {
     create: [
       createManifestoValidator,

@@ -10,74 +10,79 @@ function createTestApp() {
   return app;
 }
 
-Deno.test('bearerAuth - allows valid token', async () => {
-  // 環境変数を設定
-  const originalToken = Deno.env.get('API_TOKEN');
-  Deno.env.set('API_TOKEN', 'test-token-123');
-
+// 環境変数を一時的に設定するヘルパー関数
+async function withEnvVar(
+  name: string,
+  value: string,
+  fn: () => Promise<void>,
+): Promise<void> {
+  const original = Deno.env.get(name);
+  Deno.env.set(name, value);
   try {
-    const app = createTestApp();
-    const res = await app.request('/protected/test', {
-      headers: {
-        'Authorization': 'Bearer test-token-123',
-      },
-    });
-
-    assertEquals(res.status, 200);
-    const json = await res.json();
-    assertEquals(json.message, 'success');
+    await fn();
   } finally {
-    // 環境変数を元に戻す
-    if (originalToken) {
-      Deno.env.set('API_TOKEN', originalToken);
+    if (original) {
+      Deno.env.set(name, original);
     } else {
-      Deno.env.delete('API_TOKEN');
+      Deno.env.delete(name);
     }
   }
-});
+}
 
-Deno.test('bearerAuth - rejects missing header', async () => {
-  const app = createTestApp();
-  const res = await app.request('/protected/test');
+Deno.test('Bearer認証ミドルウェア', async (t) => {
+  await t.step('正常な認証', async (t) => {
+    await t.step('有効なトークンでアクセスできる', async () => {
+      await withEnvVar('API_TOKEN', 'test-token-123', async () => {
+        const app = createTestApp();
+        const res = await app.request('/protected/test', {
+          headers: {
+            'Authorization': 'Bearer test-token-123',
+          },
+        });
 
-  assertEquals(res.status, 401);
-  const json = await res.json();
-  assertEquals(json.error, 'Authorization header required');
-});
-
-Deno.test('bearerAuth - rejects invalid format', async () => {
-  const app = createTestApp();
-  const res = await app.request('/protected/test', {
-    headers: {
-      'Authorization': 'Basic dGVzdDp0ZXN0',
-    },
+        assertEquals(res.status, 200);
+        const json = await res.json();
+        assertEquals(json.message, 'success');
+      });
+    });
   });
 
-  assertEquals(res.status, 401);
-  const json = await res.json();
-  assertEquals(json.error, 'Invalid authorization format');
-});
+  await t.step('認証エラー', async (t) => {
+    await t.step('Authorizationヘッダーがない場合', async () => {
+      const app = createTestApp();
+      const res = await app.request('/protected/test');
 
-Deno.test('bearerAuth - rejects invalid token', async () => {
-  const originalToken = Deno.env.get('API_TOKEN');
-  Deno.env.set('API_TOKEN', 'correct-token');
-
-  try {
-    const app = createTestApp();
-    const res = await app.request('/protected/test', {
-      headers: {
-        'Authorization': 'Bearer wrong-token',
-      },
+      assertEquals(res.status, 401);
+      const json = await res.json();
+      assertEquals(json.error, 'Authorization header required');
     });
 
-    assertEquals(res.status, 401);
-    const json = await res.json();
-    assertEquals(json.error, 'Invalid token');
-  } finally {
-    if (originalToken) {
-      Deno.env.set('API_TOKEN', originalToken);
-    } else {
-      Deno.env.delete('API_TOKEN');
-    }
-  }
+    await t.step('Bearer形式でない場合', async () => {
+      const app = createTestApp();
+      const res = await app.request('/protected/test', {
+        headers: {
+          'Authorization': 'Basic dGVzdDp0ZXN0',
+        },
+      });
+
+      assertEquals(res.status, 401);
+      const json = await res.json();
+      assertEquals(json.error, 'Invalid authorization format');
+    });
+
+    await t.step('無効なトークンの場合', async () => {
+      await withEnvVar('API_TOKEN', 'correct-token', async () => {
+        const app = createTestApp();
+        const res = await app.request('/protected/test', {
+          headers: {
+            'Authorization': 'Bearer wrong-token',
+          },
+        });
+
+        assertEquals(res.status, 401);
+        const json = await res.json();
+        assertEquals(json.error, 'Invalid token');
+      });
+    });
+  });
 });

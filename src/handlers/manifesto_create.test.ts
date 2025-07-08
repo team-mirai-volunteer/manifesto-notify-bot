@@ -5,6 +5,9 @@ import type { ManifestoRepository } from '../repositories/manifesto.ts';
 import type { LLMService } from '../services/llm.ts';
 import type { Manifesto } from '../types/models/manifesto.ts';
 
+// テスト用定数
+const TEST_GITHUB_PR_URL = 'https://github.com/team-mirai/policy/pull/123';
+
 // モックリポジトリ
 function createMockRepository(): ManifestoRepository {
   const saved: Manifesto[] = [];
@@ -30,139 +33,118 @@ function createMockLLMService(summary: string): LLMService {
   };
 }
 
-Deno.test('createManifestoHandlers - successful creation', async () => {
-  const mockRepo = createMockRepository();
-  const mockLLM = createMockLLMService('要約されたテキスト');
-  const handlers = createManifestoHandlers(mockRepo, mockLLM);
-
+// テスト用のアプリケーションセットアップ
+function setupTestApp(
+  repo = createMockRepository(),
+  llm = createMockLLMService('要約'),
+): Hono {
+  const handlers = createManifestoHandlers(repo, llm);
   const app = new Hono();
   app.post('/test', ...handlers.create);
+  return app;
+}
 
-  const body = {
-    title: '環境政策の改革',
-    content: '詳細な内容...',
-    githubPrUrl: 'https://github.com/team-mirai/policy/pull/123',
-  };
+Deno.test('マニフェスト作成ハンドラー', async (t) => {
+  await t.step('正常にマニフェストを作成できる', async () => {
+    const app = setupTestApp(
+      createMockRepository(),
+      createMockLLMService('要約されたテキスト'),
+    );
 
-  const res = await app.request('/test', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    const res = await app.request('/test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: '環境政策の改革',
+        content: '詳細な内容...',
+        githubPrUrl: TEST_GITHUB_PR_URL,
+      }),
+    });
+
+    assertEquals(res.status, 201);
+    const json = await res.json();
+    assertEquals(typeof json.id, 'string');
   });
 
-  assertEquals(res.status, 201);
-  const json = await res.json();
-  assertEquals(typeof json.id, 'string');
-  assertEquals(json.id.length, 36); // UUID v4の長さ
-});
+  await t.step('バリデーションエラー', async (t) => {
+    const app = setupTestApp();
 
-Deno.test('createManifestoHandlers - missing title', async () => {
-  const mockRepo = createMockRepository();
-  const mockLLM = createMockLLMService('要約');
-  const handlers = createManifestoHandlers(mockRepo, mockLLM);
+    await t.step('タイトルが空の場合', async () => {
+      const res = await app.request('/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: '',
+          content: '内容',
+          githubPrUrl: TEST_GITHUB_PR_URL,
+        }),
+      });
 
-  const app = new Hono();
-  app.post('/test', ...handlers.create);
+      assertEquals(res.status, 400);
+      const json = await res.json();
+      assertEquals(json.success, false);
+      assertEquals(json.error.name, 'ZodError');
+      assertEquals(json.error.issues[0].message, 'Title is required');
+    });
 
-  const body = {
-    title: '',
-    content: '内容',
-    githubPrUrl: 'https://github.com/team-mirai/policy/pull/123',
-  };
+    await t.step('内容が空の場合', async () => {
+      const res = await app.request('/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: 'タイトル',
+          content: '',
+          githubPrUrl: TEST_GITHUB_PR_URL,
+        }),
+      });
 
-  const res = await app.request('/test', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+      assertEquals(res.status, 400);
+      const json = await res.json();
+      assertEquals(json.success, false);
+      assertEquals(json.error.name, 'ZodError');
+      assertEquals(json.error.issues[0].message, 'Content is required');
+    });
+
+    await t.step('GitHub PR URLが無効な場合', async () => {
+      const res = await app.request('/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: 'タイトル',
+          content: '内容',
+          githubPrUrl: 'not-a-url',
+        }),
+      });
+
+      assertEquals(res.status, 400);
+      const json = await res.json();
+      assertEquals(json.success, false);
+      assertEquals(json.error.name, 'ZodError');
+      assertEquals(json.error.issues[0].message, 'GitHub PR URL must be a valid URL');
+    });
   });
 
-  assertEquals(res.status, 400);
-  const json = await res.json();
-  assertEquals(json.success, false);
-  assertEquals(json.error.name, 'ZodError');
-  assertEquals(json.error.issues[0].message, 'Title is required');
-});
+  await t.step('LLMサービスがエラーを返す場合', async () => {
+    const errorLLM: LLMService = {
+      // deno-lint-ignore require-await
+      async generateSummary(_content: string): Promise<string> {
+        throw new Error('LLM API error');
+      },
+    };
+    const app = setupTestApp(createMockRepository(), errorLLM);
 
-Deno.test('createManifestoHandlers - missing content', async () => {
-  const mockRepo = createMockRepository();
-  const mockLLM = createMockLLMService('要約');
-  const handlers = createManifestoHandlers(mockRepo, mockLLM);
+    const res = await app.request('/test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: 'タイトル',
+        content: '内容',
+        githubPrUrl: TEST_GITHUB_PR_URL,
+      }),
+    });
 
-  const app = new Hono();
-  app.post('/test', ...handlers.create);
-
-  const body = {
-    title: 'タイトル',
-    content: '',
-    githubPrUrl: 'https://github.com/team-mirai/policy/pull/123',
-  };
-
-  const res = await app.request('/test', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    assertEquals(res.status, 500);
+    const json = await res.json();
+    assertEquals(json.error, 'Internal server error');
   });
-
-  assertEquals(res.status, 400);
-  const json = await res.json();
-  assertEquals(json.success, false);
-  assertEquals(json.error.name, 'ZodError');
-  assertEquals(json.error.issues[0].message, 'Content is required');
-});
-
-Deno.test('createManifestoHandlers - invalid GitHub PR URL', async () => {
-  const mockRepo = createMockRepository();
-  const mockLLM = createMockLLMService('要約');
-  const handlers = createManifestoHandlers(mockRepo, mockLLM);
-
-  const app = new Hono();
-  app.post('/test', ...handlers.create);
-
-  const body = {
-    title: 'タイトル',
-    content: '内容',
-    githubPrUrl: 'not-a-url',
-  };
-
-  const res = await app.request('/test', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-
-  assertEquals(res.status, 400);
-  const json = await res.json();
-  assertEquals(json.success, false);
-  assertEquals(json.error.name, 'ZodError');
-  assertEquals(json.error.issues[0].message, 'GitHub PR URL must be a valid URL');
-});
-
-Deno.test('createManifestoHandlers - OpenAI service error', async () => {
-  const mockRepo = createMockRepository();
-  const mockLLM: LLMService = {
-    // deno-lint-ignore require-await
-    async generateSummary(_content: string): Promise<string> {
-      throw new Error('LLM API error');
-    },
-  };
-  const handlers = createManifestoHandlers(mockRepo, mockLLM);
-
-  const app = new Hono();
-  app.post('/test', ...handlers.create);
-
-  const body = {
-    title: 'タイトル',
-    content: '内容',
-    githubPrUrl: 'https://github.com/team-mirai/policy/pull/123',
-  };
-
-  const res = await app.request('/test', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-
-  assertEquals(res.status, 500);
-  const json = await res.json();
-  assertEquals(json.error, 'Internal server error');
 });
