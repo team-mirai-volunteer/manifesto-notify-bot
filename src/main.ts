@@ -1,8 +1,25 @@
 import { createApp } from './app.ts';
 
-const app = createApp();
-const port = 8000;
+/**
+ * アプリケーションのエントリーポイント
+ */
+if (import.meta.main) {
+  try {
+    // アプリケーションの作成
+    const app = await createApp();
 
-console.log(`Server is running on http://localhost:${port}`);
+    // ポート番号は固定
+    const port = 8000;
 
-Deno.serve({ port }, app.fetch);
+    console.log(`🚀 Server is running on http://localhost:${port}`);
+    console.log(`📝 Manifesto API endpoint: POST http://localhost:${port}/api/manifestos`);
+    console.log(`🔒 Authentication required with Bearer token (API_TOKEN env var)`);
+    console.log(`🤖 OpenAI integration enabled (OPENAI_API_KEY env var)`);
+
+    // サーバーの起動
+    Deno.serve({ port }, app.fetch);
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    Deno.exit(1);
+  }
+}

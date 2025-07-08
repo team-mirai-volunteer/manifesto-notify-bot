@@ -66,6 +66,36 @@ When working on this project, the following rules MUST be followed:
 5. **Commit frequently**: Commit changes after each major task completion (excluding TODO.md unless
    specifically requested)
 
+### Test-Driven Development (TDD) - MANDATORY
+
+**ALL production code MUST be written using TDD methodology:**
+
+1. **RED Phase (MUST)**: Write a failing test FIRST before any implementation
+2. **GREEN Phase (MUST)**: Write ONLY the minimum code needed to make the test pass
+3. **REFACTOR Phase (MUST)**: Improve code quality ONLY after tests are green
+
+**Violations of TDD approach are NOT acceptable:**
+
+- ❌ Writing production code without a failing test
+- ❌ Writing more code than needed to pass the test
+- ❌ Refactoring when tests are not green
+- ❌ Skipping tests with the intention to "add them later"
+
+**Remember: No test, no code. This is non-negotiable.**
+
+### Testing Standards
+
+- **Test Steps**: MUST use Deno's Test Steps (`t.step()`) for hierarchical test organization
+  - Group related tests under main test cases
+  - Use descriptive step names for better readability
+  - Example: `Deno.test('認証機能', async (t) => { await t.step('正常なトークン', ...) })`
+- **Test Naming**: Test names MUST be in Japanese for consistency
+  - Use clear, descriptive names that explain the behavior being tested
+  - Follow the pattern: `機能名` → `状況` → `期待される結果`
+- **Test Isolation**: Each test MUST be independent and not affect other tests
+  - Use dependency injection to avoid environment variable dependencies
+  - Create test-specific mock objects and data
+
 ### Code Quality Standards
 
 - All code must pass lint checks with Deno's recommended rules
@@ -86,6 +116,39 @@ When working on this project, the following rules MUST be followed:
 - **Dependencies**: NEVER use deno.land/x imports. Always use JSR (jsr:) for dependencies
   - deno.land/x is deprecated
   - JSR is the official package registry for Deno
+
+### Code Abstraction Rules
+
+- **Avoid Unnecessary Abstraction**: Do NOT create functions with minimal logic
+  - If a function only assembles data or has trivial logic, integrate it directly
+  - Only abstract when there's genuine complexity or reusability
+- **Meaningful Abstractions**: Create abstractions only when they:
+  - Reduce code duplication significantly
+  - Encapsulate complex business logic
+  - Improve testability or maintainability
+
+### Architecture Patterns (Project-Specific)
+
+This project follows specific patterns that MUST be maintained:
+
+- **Dependency Injection**: Use constructor injection for all dependencies
+  - Repositories, services, and external APIs must be injected
+  - Never access global state or environment variables directly in business logic
+- **Hono + Deno KV + OpenAI Integration**:
+  - Use Hono for HTTP handling with middleware pattern
+  - Deno KV for persistence with key-value structure
+  - OpenAI API integration through service layer
+- **Validation**: Use zod for input validation with Hono's zValidator
+- **Error Handling**: Consistent error responses with proper HTTP status codes
+
+### Environment Variables Management
+
+- **Dependency Injection**: Environment variables MUST be read at application startup
+  - Pass values through dependency injection, not environment access in business logic
+  - Example: `bearerAuth(apiToken)` instead of `bearerAuth()` reading from env
+- **Test Isolation**: Tests MUST NOT depend on environment variables
+  - Use parameter injection to avoid test interference
+  - Create test-specific configurations and mock data
 
 ## License
 

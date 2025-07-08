@@ -2,11 +2,12 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
 
 jobs:
-  lint:
-    name: Lint
+  check:
+    name: Check(fmt, lint)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -17,8 +18,8 @@ jobs:
         with:
           deno-version: v2.x
 
-      - name: Run lint
-        run: deno task lint
+      - name: Run Check
+        run: deno run check
 
   test:
     name: Test
@@ -34,18 +35,3 @@ jobs:
 
       - name: Run tests
         run: deno task test
-
-  fmt-check:
-    name: Format Check
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Deno
-        uses: denoland/setup-deno@v1
-        with:
-          deno-version: v2.x
-
-      - name: Check formatting
-        run: deno task fmt --check

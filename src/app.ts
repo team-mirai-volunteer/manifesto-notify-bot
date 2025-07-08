@@ -1,14 +1,45 @@
 import { Hono } from 'hono';
 import { logger } from 'hono/logger';
+import { bearerAuth } from './middleware/auth.ts';
+import { createManifestoRepository } from './repositories/manifesto.ts';
+import { createLLMService } from './services/llm.ts';
+import { createManifestoHandlers } from './handlers/manifesto_create.ts';
 
-export function createApp() {
+/**
+ * アプリケーションを作成する
+ * @param kv Deno KVインスタンス（テスト時は外部から注入）
+ * @returns Honoアプリケーション
+ */
+export async function createApp(kv?: Deno.Kv): Promise<Hono> {
+  // 環境変数の確認
+  const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+  if (!openaiApiKey) {
+    throw new Error('OPENAI_API_KEY environment variable is required');
+  }
+
+  const apiToken = Deno.env.get('API_TOKEN');
+  if (!apiToken) {
+    throw new Error('API_TOKEN environment variable is required');
+  }
+
+  // 依存関係の構築
+  const kvInstance = kv || await Deno.openKv();
+  const manifestoRepo = createManifestoRepository(kvInstance);
+  const llmService = createLLMService(openaiApiKey);
+  const manifestoHandlers = createManifestoHandlers(manifestoRepo, llmService);
+
   const app = new Hono();
 
+  // グローバルミドルウェア
   app.use('*', logger());
 
-  app.get('/', (c) => c.text('Hello, Manifesto Notify Bot!'));
-
   app.get('/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOString() }));
+
+  // API認証ミドルウェア
+  app.use('/api/*', bearerAuth(apiToken));
+
+  // APIエンドポイント
+  app.post('/api/manifestos', ...manifestoHandlers.create);
 
   return app;
 }
