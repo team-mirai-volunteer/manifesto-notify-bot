@@ -32,24 +32,18 @@
 
 ### 通知サービス
 
-- [ ] `NotificationService`インターフェースを定義
-- [ ] `NotificationResult`型を定義
-- [ ] Strategy Patternでプラットフォーム別実装を管理する設計
+- [x] `NotificationService`インターフェースを定義
+- [x] `NotificationResult`型を定義
+- [x] Strategy Patternでプラットフォーム別実装を管理する設計
 
 ### X（Twitter）通知サービス
 
-- [ ] `XNotificationService`のテストを作成（RED）
-- [ ] `XNotificationService`を実装（GREEN）
-- [ ] X API v2の認証設定
-- [ ] 投稿文字数制限（280文字）の考慮
-- [ ] エラーハンドリング
-- [ ] リファクタリング（REFACTOR）
-
-### Slack通知サービス
-
-- [ ] `SlackNotificationService`のモックテストを作成（RED）
-- [ ] `SlackNotificationService`のモック実装（GREEN）
-- [ ] 実装は後回し（将来の拡張用）
+- [x] `XNotificationService`のテストを作成（RED）
+- [x] `XNotificationService`を実装（GREEN）
+- [x] X API v2の認証設定
+- [x] 投稿文字数制限（280文字）の考慮
+- [x] エラーハンドリング
+- [x] リファクタリング（REFACTOR）
 
 ## 3. APIエンドポイントの変更
 
