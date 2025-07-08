@@ -6,7 +6,6 @@ import type { LLMService } from '../services/llm.ts';
 import type { CreateManifestoResponse, ErrorResponse } from '../types/api/manifesto.ts';
 import type { Manifesto } from '../types/models/manifesto.ts';
 
-// バリデーションスキーマ
 const createManifestoSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   content: z.string().min(1, 'Content is required'),
@@ -16,10 +15,8 @@ const createManifestoSchema = z.object({
   ),
 });
 
-// スキーマから型を推論
 type CreateManifestoInput = z.infer<typeof createManifestoSchema>;
 
-// バリデーターの定義
 const createManifestoValidator = zValidator('json', createManifestoSchema);
 
 function createHandler(
@@ -28,18 +25,16 @@ function createHandler(
 ): (c: Context) => Promise<Response> {
   return async (c: Context) => {
     try {
-      const validatedData = await c.req.json<CreateManifestoInput>();
+      const validInput = await c.req.json<CreateManifestoInput>();
 
-      // 要約を生成
-      const summary = await llm.generateSummary(validatedData.content);
+      const summary = await llm.generateSummary(validInput.content);
 
-      // マニフェストを作成
       const manifesto: Manifesto = {
         id: crypto.randomUUID(),
-        title: validatedData.title,
+        title: validInput.title,
         summary,
-        content: validatedData.content,
-        githubPrUrl: validatedData.githubPrUrl,
+        content: validInput.content,
+        githubPrUrl: validInput.githubPrUrl,
         createdAt: new Date(),
       };
 
