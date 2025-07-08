@@ -3,7 +3,7 @@ import { logger } from 'hono/logger';
 import { bearerAuth } from './middleware/auth.ts';
 import { createManifestoRepository } from './repositories/manifesto.ts';
 import { createLLMService } from './services/llm.ts';
-import { createManifestoHandlers } from './handlers/manifesto.ts';
+import { createManifestoHandlers } from './handlers/manifesto_create.ts';
 
 /**
  * アプリケーションを作成する

@@ -1,6 +1,6 @@
 import { assertEquals } from '@std/assert';
 import { Hono } from 'hono';
-import { createManifestoHandlers } from './manifesto.ts';
+import { createManifestoHandlers } from './manifesto_create.ts';
 import type { ManifestoRepository } from '../repositories/manifesto.ts';
 import type { LLMService } from '../services/llm.ts';
 import type { Manifesto } from '../types/models/manifesto.ts';
