@@ -20,6 +20,5 @@ if (import.meta.main) {
     Deno.serve({ port }, app.fetch);
   } catch (error) {
     console.error('Failed to start server:', error);
-    Deno.exit(1);
   }
 }
