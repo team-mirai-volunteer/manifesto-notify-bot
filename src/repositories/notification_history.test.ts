@@ -88,5 +88,4 @@ Deno.test('通知履歴リポジトリ', async (t) => {
     assertEquals(found.length, 1);
     assertEquals(found[0].platform, 'x');
   });
-
 });

@@ -61,8 +61,16 @@ Deno.test('マニフェストリポジトリ', async (t) => {
 
     // 複数のマニフェストを保存
     const manifesto1 = { ...TEST_MANIFESTO, id: 'test-1' };
-    const manifesto2 = { ...TEST_MANIFESTO, id: 'test-2', githubPrUrl: 'https://github.com/team-mirai/policy/pull/2' };
-    const manifesto3 = { ...TEST_MANIFESTO, id: 'test-3', githubPrUrl: 'https://github.com/team-mirai/policy/pull/3' };
+    const manifesto2 = {
+      ...TEST_MANIFESTO,
+      id: 'test-2',
+      githubPrUrl: 'https://github.com/team-mirai/policy/pull/2',
+    };
+    const manifesto3 = {
+      ...TEST_MANIFESTO,
+      id: 'test-3',
+      githubPrUrl: 'https://github.com/team-mirai/policy/pull/3',
+    };
 
     await repo.save(manifesto1);
     await repo.save(manifesto2);
@@ -71,7 +79,7 @@ Deno.test('マニフェストリポジトリ', async (t) => {
     // 全て取得
     const all = await repo.findAll();
     assertEquals(all.length, 3);
-    
+
     // IDでソートして確認
     all.sort((a, b) => a.id.localeCompare(b.id));
     assertEquals(all[0].id, 'test-1');

@@ -24,11 +24,11 @@
 
 ### GitHub APIサービス
 
-- [ ] `GitHubService`インターフェースを定義
-- [ ] `getPullRequest`メソッドのテストを作成（RED）
-- [ ] `getPullRequest`メソッドを実装（タイトル・差分を一度に取得）（GREEN）
-- [ ] エラーハンドリングのテストを追加
-- [ ] リファクタリング（REFACTOR）
+- [x] `GitHubService`インターフェースを定義
+- [x] `getPullRequest`メソッドのテストを作成（RED）
+- [x] `getPullRequest`メソッドを実装（タイトル・差分を一度に取得）（GREEN）
+- [x] エラーハンドリングのテストを追加
+- [x] リファクタリング（REFACTOR）
 
 ### 通知サービス
 
