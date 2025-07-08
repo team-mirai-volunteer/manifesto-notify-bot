@@ -21,6 +21,10 @@ function createMockRepository(): ManifestoRepository {
       return saved.find((m) => m.id === id) || null;
     },
     // deno-lint-ignore require-await
+    async findByPrUrl(prUrl: string): Promise<Manifesto | null> {
+      return saved.find((m) => m.githubPrUrl === prUrl) || null;
+    },
+    // deno-lint-ignore require-await
     async findAll(): Promise<Manifesto[]> {
       return saved;
     },

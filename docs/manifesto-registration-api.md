@@ -17,7 +17,7 @@ team-mirai/policyリポジトリのPR情報を受け取り、要約・保存・S
 ```json
 {
   "githubPrUrl": "https://github.com/team-mirai/policy/pull/123",
-  "platforms": ["x", "slack"]  // オプション（デフォルト: ["x"]）
+  "platforms": ["x", "slack"] // オプション（デフォルト: ["x"]）
 }
 ```
 
@@ -146,8 +146,8 @@ export type NotificationHistory = {
 ["notifications", "by-platform", {platform}, {YYYY-MM-DD}] -> NotificationHistory[]
 ```
 
-※ PR URLはキーとして使用するためにエンコード（例: `encodeURIComponent()`）
-※ 通知履歴は複数の検索パターンに対応（マニフェスト別、プラットフォーム別、日付別）
+※ PR URLはキーとして使用するためにエンコード（例: `encodeURIComponent()`） ※
+通知履歴は複数の検索パターンに対応（マニフェスト別、プラットフォーム別、日付別）
 
 ## 実装の流れ
 
@@ -156,10 +156,8 @@ export type NotificationHistory = {
 3. バリデーション
 4. PR URLでKVを検索
    - 保存済みの場合: 既存データを使用
-   - 未保存の場合:
-     a. GitHub APIでPR情報を取得
-     b. OpenAI APIで要約生成
-     c. ManifestoオブジェクトをKVに保存
+   - 未保存の場合: a. GitHub APIでPR情報を取得 b. OpenAI APIで要約生成 c.
+     ManifestoオブジェクトをKVに保存
 5. 各プラットフォームに通知
 6. 通知履歴をKVに保存
 7. レスポンスの返却
