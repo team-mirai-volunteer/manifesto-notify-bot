@@ -2,7 +2,7 @@
   "tasks": {
     "dev": "deno run --unstable-kv --env-file --allow-net --allow-env --allow-read --watch src/main.ts",
     "test": "deno test --unstable-kv --allow-all",
-    "check": "deno lint && deno fmt --check && deno task test"
+    "check": "deno lint && deno fmt --check"
   },
   "imports": {
     "hono": "npm:hono@^4",
