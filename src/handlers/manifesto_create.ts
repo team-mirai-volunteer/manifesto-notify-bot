@@ -3,7 +3,11 @@ import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 import type { ManifestoRepository } from '../repositories/manifesto.ts';
 import type { LLMService } from '../services/llm.ts';
-import type { CreateManifestoResponse, ErrorResponse } from '../types/api/manifesto.ts';
+import type {
+  CreateManifestoResponse,
+  ErrorResponse,
+  ListManifestoResponse,
+} from '../types/api/manifesto.ts';
 import type { Manifesto } from '../types/models/manifesto.ts';
 
 const createManifestoSchema = z.object({
@@ -50,16 +54,32 @@ function createHandler(
   };
 }
 
+function listHandler(repo: ManifestoRepository): (c: Context) => Promise<Response> {
+  return async (c: Context) => {
+    try {
+      const manifestos = await repo.findAll();
+      const response: ListManifestoResponse = { manifestos };
+      return c.json(response, 200);
+    } catch (error) {
+      console.error('Error listing manifestos:', error);
+      const response: ErrorResponse = { error: 'Internal server error' };
+      return c.json(response, 500);
+    }
+  };
+}
+
 export function createManifestoHandlers(
   repo: ManifestoRepository,
   llm: LLMService,
 ): {
   create: [typeof createManifestoValidator, (c: Context) => Promise<Response>];
+  list: (c: Context) => Promise<Response>;
 } {
   return {
     create: [
       createManifestoValidator,
       createHandler(repo, llm),
     ],
+    list: listHandler(repo),
   };
 }
