@@ -33,4 +33,65 @@ Deno.test('マニフェストリポジトリ', async (t) => {
     const found = await repo.findById('non-existent');
     assertEquals(found, null);
   });
+
+  await t.step('PR URLで検索できる', async () => {
+    using kv = await Deno.openKv(':memory:');
+    const repo = createManifestoRepository(kv);
+
+    // まず保存
+    await repo.save(TEST_MANIFESTO);
+
+    // PR URLで検索
+    const found = await repo.findByPrUrl(TEST_MANIFESTO.githubPrUrl);
+    assertExists(found);
+    assertEquals(found, TEST_MANIFESTO);
+  });
+
+  await t.step('存在しないPR URLの場合はnullを返す', async () => {
+    using kv = await Deno.openKv(':memory:');
+    const repo = createManifestoRepository(kv);
+
+    const found = await repo.findByPrUrl('https://github.com/team-mirai/policy/pull/999');
+    assertEquals(found, null);
+  });
+
+  await t.step('全てのマニフェストを取得', async () => {
+    using kv = await Deno.openKv(':memory:');
+    const repo = createManifestoRepository(kv);
+
+    // 複数のマニフェストを保存
+    const manifesto1 = { ...TEST_MANIFESTO, id: 'test-1' };
+    const manifesto2 = {
+      ...TEST_MANIFESTO,
+      id: 'test-2',
+      githubPrUrl: 'https://github.com/team-mirai/policy/pull/2',
+    };
+    const manifesto3 = {
+      ...TEST_MANIFESTO,
+      id: 'test-3',
+      githubPrUrl: 'https://github.com/team-mirai/policy/pull/3',
+    };
+
+    await repo.save(manifesto1);
+    await repo.save(manifesto2);
+    await repo.save(manifesto3);
+
+    // 全て取得
+    const all = await repo.findAll();
+    assertEquals(all.length, 3);
+
+    // IDでソートして確認
+    all.sort((a, b) => a.id.localeCompare(b.id));
+    assertEquals(all[0].id, 'test-1');
+    assertEquals(all[1].id, 'test-2');
+    assertEquals(all[2].id, 'test-3');
+  });
+
+  await t.step('マニフェストがない場合は空配列を返す', async () => {
+    using kv = await Deno.openKv(':memory:');
+    const repo = createManifestoRepository(kv);
+
+    const all = await repo.findAll();
+    assertEquals(all, []);
+  });
 });

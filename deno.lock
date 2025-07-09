@@ -1,10 +1,13 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@std/assert@*": "1.0.13",
     "jsr:@std/assert@1": "1.0.13",
     "jsr:@std/internal@^1.0.6": "1.0.8",
     "npm:@hono/zod-validator@0.7": "0.7.0_hono@4.8.4_zod@3.25.75",
     "npm:hono@4": "4.8.4",
+    "npm:twitter-api-v2@*": "1.24.0",
+    "npm:twitter-api-v2@^1.24.0": "1.24.0",
     "npm:zod@3": "3.25.75"
   },
   "jsr": {
@@ -29,6 +32,9 @@
     "hono@4.8.4": {
       "integrity": "sha512-KOIBp1+iUs0HrKztM4EHiB2UtzZDTBihDtOF5K6+WaJjCPeaW4Q92R8j63jOhvJI5+tZSMuKD9REVEXXY9illg=="
     },
+    "twitter-api-v2@1.24.0": {
+      "integrity": "sha512-RDEiuNwnFirvf4c5f1sysgg0rfMQgekXgKt+/UdbNu+Bs5bJ1VbXkqKzdd2a2lPMlDVDbdGUoe2pOd4n25fFVQ=="
+    },
     "zod@3.25.75": {
       "integrity": "sha512-OhpzAmVzabPOL6C3A3gpAifqr9MqihV/Msx3gor2b2kviCgcb+HM9SEOpMWwwNp9MRunWnhtAKUoo0AHhjyPPg=="
     }
@@ -38,6 +44,7 @@
       "jsr:@std/assert@1",
       "npm:@hono/zod-validator@0.7",
       "npm:hono@4",
+      "npm:twitter-api-v2@^1.24.0",
       "npm:zod@3"
     ]
   }
