@@ -3,6 +3,7 @@ import type { NotificationHistory } from '../types/models/notification_history.t
 export type NotificationHistoryRepository = {
   save(history: NotificationHistory): Promise<void>;
   findByManifesto(manifestoId: string, platform?: string): Promise<NotificationHistory[]>;
+  findAll(): Promise<NotificationHistory[]>;
 };
 
 export function createNotificationHistoryRepository(kv: Deno.Kv): NotificationHistoryRepository {
@@ -29,6 +30,16 @@ export function createNotificationHistoryRepository(kv: Deno.Kv): NotificationHi
         histories.push(entry.value);
       }
 
+      return histories;
+    },
+
+    async findAll(): Promise<NotificationHistory[]> {
+      const histories: NotificationHistory[] = [];
+      for await (
+        const entry of kv.list<NotificationHistory>({ prefix: ['notifications', 'by-id'] })
+      ) {
+        histories.push(entry.value);
+      }
       return histories;
     },
   };

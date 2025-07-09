@@ -1,7 +1,9 @@
 export type NotificationResult = {
-  success: boolean;
-  message?: string;
-  url?: string;
+  success: true;
+  url: string;
+} | {
+  success: false;
+  message: string;
 };
 
 export type NotificationService = {

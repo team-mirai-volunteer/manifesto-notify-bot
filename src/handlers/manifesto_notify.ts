@@ -57,6 +57,10 @@ export function createManifestoNotifyHandler(
         // X（Twitter）に通知
         const result = await notificationService.notify(manifesto.title, manifesto.summary);
 
+        if (!result.success) {
+          return c.json({ error: `Failed to notify on X: ${result.message}` }, 500);
+        }
+
         // 通知履歴を保存
         const history: NotificationHistory = {
           id: crypto.randomUUID(),

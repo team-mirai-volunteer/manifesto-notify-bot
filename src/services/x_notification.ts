@@ -1,4 +1,4 @@
-import { TwitterApi } from 'npm:twitter-api-v2';
+import { XClient } from '../repositories/x.ts';
 import type { NotificationResult, NotificationService } from './notification.ts';
 
 export type XNotificationConfig = {
@@ -8,14 +8,7 @@ export type XNotificationConfig = {
   accessTokenSecret: string;
 };
 
-export function createXNotificationService(config: XNotificationConfig): NotificationService {
-  const client = new TwitterApi({
-    appKey: config.apiKey,
-    appSecret: config.apiKeySecret,
-    accessToken: config.accessToken,
-    accessSecret: config.accessTokenSecret,
-  });
-
+export function createXNotificationService(client: XClient): NotificationService {
   return {
     async notify(title: string, content: string): Promise<NotificationResult> {
       try {
@@ -27,11 +20,11 @@ export function createXNotificationService(config: XNotificationConfig): Notific
           text = text.substring(0, 130) + '...';
         }
 
-        const tweet = await client.v2.tweet(text);
+        const post = await client.tweet(text);
 
         return {
           success: true,
-          url: `https://x.com/mirai_manifesto/status/${tweet.data.id}`,
+          url: `https://x.com/mirai_manifesto/status/${post.data.id}`,
         };
       } catch (error) {
         return {

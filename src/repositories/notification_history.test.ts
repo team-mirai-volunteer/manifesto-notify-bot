@@ -87,4 +87,39 @@ Deno.test('通知履歴リポジトリ', async (t) => {
     assertEquals(found.length, 1);
     assertEquals(found[0].platform, 'x');
   });
+
+  await t.step('全ての通知履歴を取得', async () => {
+    using kv = await Deno.openKv(':memory:');
+    const repo = createNotificationHistoryRepository(kv);
+
+    // 複数の通知履歴を保存
+    const histories: NotificationHistory[] = [
+      {
+        ...TEST_HISTORY,
+        id: 'history-1',
+        manifestoId: 'manifesto-1',
+        platform: 'x',
+      },
+      {
+        ...TEST_HISTORY,
+        id: 'history-2',
+        manifestoId: 'manifesto-2',
+        platform: 'x',
+      },
+      {
+        ...TEST_HISTORY,
+        id: 'history-3',
+        manifestoId: 'manifesto-3',
+        platform: 'slack',
+      },
+    ];
+
+    for (const history of histories) {
+      await repo.save(history);
+    }
+
+    // 全件取得
+    const found = await repo.findAll();
+    assertEquals(found.length, 3);
+  });
 });
