@@ -5,7 +5,7 @@ import { createManifestoRepository } from '../repositories/manifesto.ts';
 import { createNotificationHistoryRepository } from '../repositories/notification_history.ts';
 import type { GitHubService } from '../services/github.ts';
 import type { LLMService } from '../services/llm.ts';
-import type { NotificationService } from '../services/notification.ts';
+import type { NotificationResult, NotificationService } from '../services/notification.ts';
 import type { Manifesto } from '../types/models/manifesto.ts';
 
 Deno.test('マニフェスト通知ハンドラー', async (t) => {
@@ -212,11 +212,11 @@ Deno.test('マニフェスト通知ハンドラー', async (t) => {
 
     // 通知失敗するモック
     const failingNotificationService: NotificationService = {
-      notify: async (_title: string, _content: string) => {
-        return {
+      notify: (_title: string, _content: string): Promise<NotificationResult> => {
+        return Promise.resolve({
           success: false,
           message: 'X API error: rate limit exceeded',
-        };
+        });
       },
     };
 
