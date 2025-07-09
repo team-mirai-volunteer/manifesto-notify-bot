@@ -73,8 +73,9 @@ Deno.test('マニフェスト通知ハンドラー', async (t) => {
 
     assertEquals(res.status, 200);
     const body = await res.json();
-    assertEquals(body.success, true);
     assertEquals(body.manifestoId, 'test-id');
+    assertEquals(body.notifications.x.success, true);
+    assertEquals(body.notifications.x.url, 'https://x.com/test/status/123');
   });
 
   await t.step('存在しないマニフェストの場合は新規作成して通知', async () => {
@@ -102,8 +103,9 @@ Deno.test('マニフェスト通知ハンドラー', async (t) => {
 
     assertEquals(res.status, 200);
     const body = await res.json();
-    assertEquals(body.success, true);
     assertEquals(typeof body.manifestoId, 'string');
+    assertEquals(body.notifications.x.success, true);
+    assertEquals(body.notifications.x.url, 'https://x.com/test/status/123');
   });
 
   await t.step('すべてのプラットフォームに通知', async () => {
@@ -131,7 +133,9 @@ Deno.test('マニフェスト通知ハンドラー', async (t) => {
 
     assertEquals(res.status, 200);
     const body = await res.json();
-    assertEquals(body.success, true);
+    assertEquals(typeof body.manifestoId, 'string');
+    assertEquals(body.notifications.x.success, true);
+    assertEquals(body.notifications.x.url, 'https://x.com/test/status/123');
   });
 
   await t.step('無効なGitHub PR URLの場合は400エラー', async () => {
@@ -201,6 +205,52 @@ Deno.test('マニフェスト通知ハンドラー', async (t) => {
     });
 
     assertEquals(res.status, 400);
+  });
+
+  await t.step('通知失敗時でも200を返し、失敗情報を含む', async () => {
+    const app = new Hono();
+    
+    // 通知失敗するモック
+    const failingNotificationService: NotificationService = {
+      notify: async (_title: string, _content: string) => {
+        return {
+          success: false,
+          message: 'X API error: rate limit exceeded',
+        };
+      },
+    };
+
+    const handler = createManifestoNotifyHandler(
+      manifestoRepo,
+      historyRepo,
+      mockGitHubService,
+      mockLLMService,
+      failingNotificationService,
+    );
+
+    app.post('/notify', ...handler);
+
+    const res = await app.request('/notify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        githubPrUrl: 'https://github.com/test/repo/pull/999',
+      }),
+    });
+
+    assertEquals(res.status, 200);
+    const body = await res.json();
+    assertEquals(typeof body.manifestoId, 'string');
+    assertEquals(body.notifications.x.success, false);
+    assertEquals(body.notifications.x.message, 'X API error: rate limit exceeded');
+    assertEquals(body.notifications.x.url, undefined);
+
+    // 通知履歴が保存されていないことを確認
+    const histories = await historyRepo.findAll();
+    const failedHistory = histories.find(h => h.githubPrUrl === 'https://github.com/test/repo/pull/999');
+    assertEquals(failedHistory, undefined);
   });
 
   await kv.close();
