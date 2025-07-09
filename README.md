@@ -95,7 +95,7 @@ src/
 ## ドキュメント
 
 - [アーキテクチャ設計](./docs/architecture.md)
-- [マニフェスト通知API設計](./docs/manifesto-registration-api.md)
+- [マニフェスト通知API設計](./docs/manifesto-notify-and-registration-api.md)
 
 ## ライセンス
 
