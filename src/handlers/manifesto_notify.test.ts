@@ -209,7 +209,7 @@ Deno.test('マニフェスト通知ハンドラー', async (t) => {
 
   await t.step('通知失敗時でも200を返し、失敗情報を含む', async () => {
     const app = new Hono();
-    
+
     // 通知失敗するモック
     const failingNotificationService: NotificationService = {
       notify: async (_title: string, _content: string) => {
@@ -249,7 +249,9 @@ Deno.test('マニフェスト通知ハンドラー', async (t) => {
 
     // 通知履歴が保存されていないことを確認
     const histories = await historyRepo.findAll();
-    const failedHistory = histories.find(h => h.githubPrUrl === 'https://github.com/test/repo/pull/999');
+    const failedHistory = histories.find((h) =>
+      h.githubPrUrl === 'https://github.com/test/repo/pull/999'
+    );
     assertEquals(failedHistory, undefined);
   });
 
