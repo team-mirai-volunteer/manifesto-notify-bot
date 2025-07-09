@@ -16,8 +16,7 @@ team-mirai/policyリポジトリのPR情報を受け取り、要約・保存・S
 
 ```json
 {
-  "githubPrUrl": "https://github.com/team-mirai/policy/pull/123",
-  "platforms": ["x", "slack"] // オプション（デフォルト: ["x"]）
+  "githubPrUrl": "https://github.com/team-mirai/policy/pull/123"
 }
 ```
 
@@ -110,7 +109,6 @@ export type NotificationHistory = {
   manifestoId: string; // 関連するマニフェストID
   githubPrUrl: string; // PR URL（検索用）
   platform: string; // プラットフォーム名（"x", "slack"等）
-  postId: string; // 投稿ID（X: tweetId, Slack: timestamp等）
   postUrl?: string; // 投稿URL（取得可能な場合）
   postedAt: Date; // 投稿日時
   impressions?: number; // インプレッション数（後で更新可能）
@@ -121,7 +119,6 @@ export type NotificationHistory = {
 ## バリデーションルール
 
 - `githubPrUrl`: 必須、空文字不可、有効なGitHub PR URL
-- `platforms`: オプション、配列、値は "x", "slack" のみ許可
 
 ## エラーレスポンス
 
