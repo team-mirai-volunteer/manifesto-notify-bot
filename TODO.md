@@ -49,22 +49,22 @@
 
 ### ハンドラーの修正
 
-- [ ] 既存の`createHandler`を`notifyHandler`に変更するテストを作成（RED）
-- [ ] エンドポイントを`/api/manifestos/notify`に変更
-- [ ] リクエストボディを`{ githubPrUrl, platforms? }`に変更
-- [ ] PR URLでマニフェストを検索する処理を追加
-- [ ] 未保存の場合はGitHub API → OpenAI → 保存の処理を実装
-- [ ] 各プラットフォームへの通知処理を追加
-- [ ] 通知履歴の保存処理を追加
-- [ ] レスポンス形式を新仕様に合わせる
-- [ ] エラーハンドリングの強化
-- [ ] リファクタリング（REFACTOR）
+- [x] 既存の`createHandler`を`notifyHandler`に変更するテストを作成（RED）
+- [x] エンドポイントを`/api/manifestos/notify`に変更
+- [x] リクエストボディを`{ githubPrUrl, platforms? }`に変更
+- [x] PR URLでマニフェストを検索する処理を追加
+- [x] 未保存の場合はGitHub API → OpenAI → 保存の処理を実装
+- [x] 各プラットフォームへの通知処理を追加
+- [x] 通知履歴の保存処理を追加
+- [x] レスポンス形式を新仕様に合わせる
+- [x] エラーハンドリングの強化
+- [x] リファクタリング（REFACTOR）
 
 ### ルーティングの更新
 
-- [ ] `app.ts`でルーティングを`/api/manifestos/notify`に変更
-- [ ] 既存の`/api/manifestos` POSTを削除
-- [ ] `GET /api/manifestos`は維持
+- [x] `app.ts`でルーティングを`/api/manifestos/notify`に変更
+- [x] 既存の`/api/manifestos` POSTを削除
+- [x] `GET /api/manifestos`は維持
 
 ## 4. 設定・ドキュメント
 
@@ -78,7 +78,7 @@
 
 ### テスト
 
-- [ ] 統合テストの作成
+- [x] 統合テストの作成
 - [ ] モックサーバーの設定
 
 ### ドキュメント

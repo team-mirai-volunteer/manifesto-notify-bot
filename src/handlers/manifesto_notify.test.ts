@@ -35,9 +35,6 @@ Deno.test('マニフェスト通知ハンドラー', async (t) => {
         url: 'https://x.com/test/status/123',
       });
     },
-    getPlatformName() {
-      return 'x';
-    },
   };
 
   await t.step('存在するマニフェストを通知できる', async () => {
@@ -58,7 +55,7 @@ Deno.test('マニフェスト通知ハンドラー', async (t) => {
       historyRepo,
       mockGitHubService,
       mockLLMService,
-      { x: mockNotificationService },
+      mockNotificationService,
     );
 
     // RED: createManifestoNotifyHandlerが存在しない状態でテストを実行
@@ -71,7 +68,6 @@ Deno.test('マニフェスト通知ハンドラー', async (t) => {
       },
       body: JSON.stringify({
         githubPrUrl: 'https://github.com/test/repo/pull/123',
-        platforms: ['x'],
       }),
     });
 
@@ -88,7 +84,7 @@ Deno.test('マニフェスト通知ハンドラー', async (t) => {
       historyRepo,
       mockGitHubService,
       mockLLMService,
-      { x: mockNotificationService },
+      mockNotificationService,
     );
 
     // RED: createManifestoNotifyHandlerが存在しない状態でテストを実行
@@ -101,7 +97,6 @@ Deno.test('マニフェスト通知ハンドラー', async (t) => {
       },
       body: JSON.stringify({
         githubPrUrl: 'https://github.com/test/repo/pull/456',
-        platforms: ['x'],
       }),
     });
 
@@ -111,14 +106,14 @@ Deno.test('マニフェスト通知ハンドラー', async (t) => {
     assertEquals(typeof body.manifestoId, 'string');
   });
 
-  await t.step('platformsが指定されていない場合はすべてのプラットフォームに通知', async () => {
+  await t.step('すべてのプラットフォームに通知', async () => {
     const app = new Hono();
     const handler = createManifestoNotifyHandler(
       manifestoRepo,
       historyRepo,
       mockGitHubService,
       mockLLMService,
-      { x: mockNotificationService },
+      mockNotificationService,
     );
 
     // RED: createManifestoNotifyHandlerが存在しない状態でテストを実行
@@ -139,6 +134,49 @@ Deno.test('マニフェスト通知ハンドラー', async (t) => {
     assertEquals(body.success, true);
   });
 
+  await t.step('無効なGitHub PR URLの場合は400エラー', async () => {
+    const app = new Hono();
+    const handler = createManifestoNotifyHandler(
+      manifestoRepo,
+      historyRepo,
+      mockGitHubService,
+      mockLLMService,
+      mockNotificationService,
+    );
+
+    app.post('/notify', ...handler);
+
+    // 通常のURLだがPR URLではない
+    const res1 = await app.request('/notify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer test-api-token',
+      },
+      body: JSON.stringify({
+        githubPrUrl: 'https://github.com/test/repo',
+      }),
+    });
+
+    assertEquals(res1.status, 400);
+    await res1.text(); // レスポンスボディを消費
+
+    // issueのURL
+    const res2 = await app.request('/notify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer test-api-token',
+      },
+      body: JSON.stringify({
+        githubPrUrl: 'https://github.com/test/repo/issues/123',
+      }),
+    });
+
+    assertEquals(res2.status, 400);
+    await res2.text(); // レスポンスボディを消費
+  });
+
   await t.step('無効なリクエストボディの場合は400エラー', async () => {
     const app = new Hono();
     const handler = createManifestoNotifyHandler(
@@ -146,7 +184,7 @@ Deno.test('マニフェスト通知ハンドラー', async (t) => {
       historyRepo,
       mockGitHubService,
       mockLLMService,
-      { x: mockNotificationService },
+      mockNotificationService,
     );
 
     // RED: createManifestoNotifyHandlerが存在しない状態でテストを実行

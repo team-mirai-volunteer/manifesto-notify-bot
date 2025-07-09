@@ -6,8 +6,6 @@ import { createNotificationHistoryRepository } from './repositories/notification
 import { createLLMService } from './services/llm.ts';
 import { createGitHubService } from './services/github.ts';
 import { createXNotificationService } from './services/x_notification.ts';
-import type { NotificationService } from './services/notification.ts';
-import { createManifestoHandlers } from './handlers/manifesto_create.ts';
 import { createManifestoNotifyHandler } from './handlers/manifesto_notify.ts';
 
 /**
@@ -38,26 +36,28 @@ export async function createApp(kv?: Deno.Kv): Promise<Hono> {
   const manifestoRepo = createManifestoRepository(kvInstance);
   const historyRepo = createNotificationHistoryRepository(kvInstance);
   const llmService = createLLMService(openaiApiKey);
-  const githubService = createGitHubService(githubToken);
+  const githubService = createGitHubService(fetch, githubToken);
 
-  // 通知サービスの設定
-  const notificationServices: Record<string, NotificationService> = {};
-  if (xApiKey && xApiKeySecret && xAccessToken && xAccessTokenSecret) {
-    notificationServices.x = createXNotificationService({
-      apiKey: xApiKey,
-      apiKeySecret: xApiKeySecret,
-      accessToken: xAccessToken,
-      accessTokenSecret: xAccessTokenSecret,
-    });
+  // X通知サービスの設定（必須）
+  if (!xApiKey || !xApiKeySecret || !xAccessToken || !xAccessTokenSecret) {
+    throw new Error(
+      'X API credentials are required (X_API_KEY, X_API_KEY_SECRET, X_ACCESS_TOKEN, X_ACCESS_TOKEN_SECRET)',
+    );
   }
 
-  const manifestoHandlers = createManifestoHandlers(manifestoRepo, llmService);
+  const xNotificationService = createXNotificationService({
+    apiKey: xApiKey,
+    apiKeySecret: xApiKeySecret,
+    accessToken: xAccessToken,
+    accessTokenSecret: xAccessTokenSecret,
+  });
+
   const notifyHandler = createManifestoNotifyHandler(
     manifestoRepo,
     historyRepo,
     githubService,
     llmService,
-    notificationServices,
+    xNotificationService,
   );
 
   const app = new Hono();
@@ -72,7 +72,15 @@ export async function createApp(kv?: Deno.Kv): Promise<Hono> {
 
   // APIエンドポイント
   app.post('/api/manifestos/notify', ...notifyHandler);
-  app.get('/api/manifestos', manifestoHandlers.list);
+  app.get('/api/manifestos', async (c) => {
+    try {
+      const manifestos = await manifestoRepo.findAll();
+      return c.json({ manifestos }, 200);
+    } catch (error) {
+      console.error('Error listing manifestos:', error);
+      return c.json({ error: 'Internal server error' }, 500);
+    }
+  });
 
   return app;
 }

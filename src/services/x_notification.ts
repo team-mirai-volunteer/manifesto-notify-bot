@@ -1,3 +1,4 @@
+import { TwitterApi } from 'npm:twitter-api-v2';
 import type { NotificationResult, NotificationService } from './notification.ts';
 
 export type XNotificationConfig = {
@@ -5,11 +6,15 @@ export type XNotificationConfig = {
   apiKeySecret: string;
   accessToken: string;
   accessTokenSecret: string;
-  fetchFn?: typeof fetch;
 };
 
 export function createXNotificationService(config: XNotificationConfig): NotificationService {
-  const { fetchFn = fetch } = config;
+  const client = new TwitterApi({
+    appKey: config.apiKey,
+    appSecret: config.apiKeySecret,
+    accessToken: config.accessToken,
+    accessSecret: config.accessTokenSecret,
+  });
 
   return {
     async notify(title: string, content: string): Promise<NotificationResult> {
@@ -18,33 +23,15 @@ export function createXNotificationService(config: XNotificationConfig): Notific
         let text = `${title}\n\n${content}`;
 
         // 280文字を超える場合は切り詰める
-        if (text.length > 280) {
-          text = text.substring(0, 277) + '...';
+        if (text.length > 130) {
+          text = text.substring(0, 130) + '...';
         }
 
-        // 実際のX API v2では、OAuth 2.0 Bearer TokenまたはOAuth 1.0a署名が必要
-        // 本番実装では、適切な認証ライブラリを使用すること
-        const headers: Record<string, string> = {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${config.accessToken}`,
-        };
-
-        const response = await fetchFn('https://api.twitter.com/2/tweets', {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({ text }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`X API error: ${response.status}`);
-        }
-
-        const data = await response.json();
-        const tweetId = data.data.id;
+        const tweet = await client.v2.tweet(text);
 
         return {
           success: true,
-          url: `https://x.com/TeamMirai/status/${tweetId}`,
+          url: `https://x.com/mirai_manifesto/status/${tweet.data.id}`,
         };
       } catch (error) {
         return {
@@ -54,10 +41,6 @@ export function createXNotificationService(config: XNotificationConfig): Notific
           }`,
         };
       }
-    },
-
-    getPlatformName(): string {
-      return 'x';
     },
   };
 }

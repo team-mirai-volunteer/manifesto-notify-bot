@@ -8,14 +8,12 @@ export type ManifestoRepository = {
 };
 
 export function createManifestoRepository(kv: Deno.Kv): ManifestoRepository {
-  const encodePrUrl = (url: string) => encodeURIComponent(url);
-
   return {
     async save(manifesto: Manifesto): Promise<void> {
       // トランザクションで両方のキーに保存
       const atomic = kv.atomic();
       atomic.set(['manifestos', 'by-id', manifesto.id], manifesto);
-      atomic.set(['manifestos', 'by-pr-url', encodePrUrl(manifesto.githubPrUrl)], manifesto);
+      atomic.set(['manifestos', 'by-pr-url', encodeURIComponent(manifesto.githubPrUrl)], manifesto);
       await atomic.commit();
     },
 
@@ -25,7 +23,11 @@ export function createManifestoRepository(kv: Deno.Kv): ManifestoRepository {
     },
 
     async findByPrUrl(prUrl: string): Promise<Manifesto | null> {
-      const result = await kv.get<Manifesto>(['manifestos', 'by-pr-url', encodePrUrl(prUrl)]);
+      const result = await kv.get<Manifesto>([
+        'manifestos',
+        'by-pr-url',
+        encodeURIComponent(prUrl),
+      ]);
       return result.value;
     },
 

@@ -7,7 +7,6 @@ const TEST_HISTORY: NotificationHistory = {
   manifestoId: 'test-manifesto-123',
   githubPrUrl: 'https://github.com/team-mirai/policy/pull/1',
   platform: 'x',
-  postId: '1234567890',
   postUrl: 'https://x.com/TeamMirai/status/1234567890',
   postedAt: new Date('2024-01-01T00:00:00Z'),
 };

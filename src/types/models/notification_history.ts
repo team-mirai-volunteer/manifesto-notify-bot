@@ -3,7 +3,6 @@ export type NotificationHistory = {
   manifestoId: string;
   githubPrUrl: string;
   platform: string;
-  postId: string;
   postUrl?: string;
   postedAt: Date;
   impressions?: number;

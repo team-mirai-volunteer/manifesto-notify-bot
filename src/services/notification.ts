@@ -6,5 +6,4 @@ export type NotificationResult = {
 
 export type NotificationService = {
   notify(title: string, content: string): Promise<NotificationResult>;
-  getPlatformName(): string;
 };

@@ -9,11 +9,12 @@ import type { NotificationService } from '../services/notification.ts';
 import type { NotificationHistory } from '../types/models/notification_history.ts';
 
 const notifyManifestoSchema = z.object({
-  githubPrUrl: z.string().url('GitHub PR URL must be a valid URL').min(
-    1,
-    'GitHub PR URL is required',
-  ),
-  platforms: z.array(z.string()).optional(),
+  githubPrUrl: z.string()
+    .min(1, 'GitHub PR URL is required')
+    .regex(
+      /^https:\/\/github\.com\/[^\/]+\/[^\/]+\/pull\/\d+$/,
+      'GitHub PR URL must be in the format: https://github.com/owner/repo/pull/123',
+    ),
 });
 
 type NotifyManifestoInput = z.infer<typeof notifyManifestoSchema>;
@@ -25,7 +26,7 @@ export function createManifestoNotifyHandler(
   historyRepo: NotificationHistoryRepository,
   githubService: GitHubService,
   llmService: LLMService,
-  notificationServices: Record<string, NotificationService>,
+  notificationService: NotificationService,
 ): [typeof notifyManifestoValidator, (c: Context) => Promise<Response>] {
   return [
     notifyManifestoValidator,
@@ -53,29 +54,20 @@ export function createManifestoNotifyHandler(
           await manifestoRepo.save(manifesto);
         }
 
-        // 通知対象のプラットフォームを決定
-        const targetPlatforms = validInput.platforms || Object.keys(notificationServices);
+        // X（Twitter）に通知
+        const result = await notificationService.notify(manifesto.title, manifesto.summary);
 
-        // 各プラットフォームに通知
-        for (const platform of targetPlatforms) {
-          const service = notificationServices[platform];
-          if (service) {
-            const result = await service.notify(manifesto.title, manifesto.summary);
+        // 通知履歴を保存
+        const history: NotificationHistory = {
+          id: crypto.randomUUID(),
+          manifestoId: manifesto.id,
+          githubPrUrl: manifesto.githubPrUrl,
+          platform: 'x', // 現在はXのみ対応
+          postUrl: result.url,
+          postedAt: new Date(),
+        };
 
-            // 通知履歴を保存
-            const history: NotificationHistory = {
-              id: crypto.randomUUID(),
-              manifestoId: manifesto.id,
-              githubPrUrl: manifesto.githubPrUrl,
-              platform,
-              postId: result.url ? result.url.split('/').pop() || '' : '',
-              postUrl: result.url,
-              postedAt: new Date(),
-            };
-
-            await historyRepo.save(history);
-          }
-        }
+        await historyRepo.save(history);
 
         return c.json({
           success: true,
