@@ -21,13 +21,5 @@
     "lineWidth": 100,
     "indentWidth": 2,
     "singleQuote": true
-  },
-  "deploy": {
-    "project": "59ef9a8c-4eae-4807-8e8c-8b41c56065e5",
-    "exclude": [
-      "**/node_modules"
-    ],
-    "include": [],
-    "entrypoint": "src/main.ts"
   }
 }
