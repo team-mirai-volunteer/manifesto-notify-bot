@@ -113,6 +113,7 @@ The repository provides structured issue templates in `.github/ISSUE_TEMPLATE/`:
 ## Code Owners
 
 Defined in `.github/CODEOWNERS`:
+
 - @skanehira
 - @wakanayoshizawa
 - @yuki-snow1823
@@ -184,7 +185,9 @@ X_ACCESS_TOKEN_SECRET=<secret>
 ## Architecture Patterns
 
 ### Dependency Injection Pattern
-All services, repositories, and handlers are created using factory functions with injected dependencies:
+
+All services, repositories, and handlers are created using factory functions with injected
+dependencies:
 
 ```typescript
 // Example from app.ts
@@ -201,18 +204,22 @@ const notifyHandler = createManifestoNotifyHandler(
 ```
 
 ### Data Persistence with Deno KV
+
 The project uses Deno KV for data storage with hierarchical key design:
+
 - `["manifestos", {id}]` - Manifesto storage
 - `["manifestos", "by-pr-url", {encoded_url}]` - PR URL index
 - `["notifications", {id}]` - Notification history
 - `["notifications", "by-manifesto", {manifesto_id}, {platform}]` - Platform-specific notifications
 
 ### Authentication Implementation
+
 - Bearer authentication implemented as middleware
 - Token validation against `API_TOKEN` environment variable
 - Authentication enabled only in production (`ENV=prod`)
 
 ### Error Handling
+
 - Consistent error response format across all endpoints
 - Appropriate HTTP status codes for different error types
 - Detailed error messages for debugging
@@ -321,6 +328,7 @@ This project follows specific patterns that MUST be maintained:
 ## Documentation Language
 
 All documentation in this project MUST be written in Japanese:
+
 - README.md
 - CONTRIBUTING.md
 - All files in the `/docs` directory

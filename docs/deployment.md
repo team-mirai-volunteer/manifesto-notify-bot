@@ -4,7 +4,8 @@
 
 ## 自動デプロイ
 
-プロジェクトは`main`ブランチへのプッシュ時に自動的にDeno Deployへデプロイされるように設定されています。
+プロジェクトは`main`ブランチへのプッシュ時に自動的にDeno
+Deployへデプロイされるように設定されています。
 
 ### 前提条件
 
@@ -37,6 +38,7 @@
 ### デプロイワークフロー
 
 デプロイワークフロー（`.github/workflows/deploy.yml`）は以下の動作をします：
+
 1. `main`ブランチへのプッシュごとにトリガー
 2. Denoとdeployctlをインストール
 3. `deno task deploy`を実行してDeno Deployへデプロイ
@@ -60,11 +62,13 @@ Deno Deployへの認証が必要です。未ログインの場合は`deployctl l
 Deno Deployで以下の環境変数を設定する必要があります：
 
 ### 必須変数
+
 - `ENV`: 本番環境では`prod`に設定
 - `API_TOKEN`: API アクセス用のBearer認証トークン
 - `OPENAI_API_KEY`: OpenAI APIキー
 
 ### オプション変数
+
 - `GITHUB_TOKEN`: プライベートリポジトリへのアクセス用（必要な場合）
 - `X_API_KEY`: Twitter/X API認証情報（X通知を有効にするには4つすべて必要）
 - `X_API_KEY_SECRET`
