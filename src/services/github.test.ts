@@ -109,35 +109,4 @@ index 1234567..89abcdef 100644
       'Failed to fetch PR diff: 500',
     );
   });
-
-  await t.step('実際のGitHub APIでpublicリポジトリにアクセス（トークンなし）', async () => {
-    // まず実際にアクセス可能な公開PRを見つけるためのテスト
-    // octocat/Hello-Worldは常に存在する公開リポジトリ
-    const service = createGitHubService(); // トークンなし
-
-    try {
-      // octocat/Hello-Worldの最初のPRを試す
-      const result = await service.getPullRequest('https://github.com/octocat/Hello-World/pull/1');
-      console.log(result);
-
-      // PRのタイトルが取得できていることを確認（内容は変わる可能性があるため存在チェックのみ）
-      assertEquals(typeof result.title, 'string');
-      assertEquals(result.title.length > 0, true);
-
-      // 差分が取得できていることを確認
-      assertEquals(typeof result.diff, 'string');
-      // 古いPRなので差分がない可能性もある
-      console.log('Successfully fetched PR info without token');
-    } catch (error) {
-      // APIレート制限などの場合はスキップ
-      if (
-        error instanceof Error &&
-        (error.message.includes('403') || error.message.includes('rate limit'))
-      ) {
-        console.log('Skipping test due to API rate limit');
-      } else {
-        throw error;
-      }
-    }
-  });
 });
