@@ -1,5 +1,3 @@
-import { Manifesto } from '../types/models/manifesto.ts';
-
 export type NotificationResult = {
   success: true;
   url: string;
@@ -9,5 +7,5 @@ export type NotificationResult = {
 };
 
 export type NotificationService = {
-  notify(manifesto: Manifesto): Promise<NotificationResult>;
+  notify(text: string): Promise<NotificationResult>;
 };
