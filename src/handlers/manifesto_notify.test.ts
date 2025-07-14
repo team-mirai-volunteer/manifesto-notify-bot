@@ -255,7 +255,7 @@ Deno.test('マニフェスト通知ハンドラー', async (t) => {
 
     // 通知失敗するモック
     const failingNotificationService: NotificationService = {
-      notify: (_: Manifesto): Promise<NotificationResult> => {
+      notify: (_text): Promise<NotificationResult> => {
         return Promise.resolve({
           success: false,
           message: 'X API error: rate limit exceeded',

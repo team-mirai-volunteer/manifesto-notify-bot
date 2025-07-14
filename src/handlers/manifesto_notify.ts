@@ -58,7 +58,17 @@ export function createManifestoNotifyHandler(
           }
         }
 
-        const result = await notificationService.notify(manifesto);
+        const text = `
+皆様の政策提案がマニフェストに取り込まれました🎉
+
+✅ 要約: ${manifesto.summary}
+📝 詳細: ${manifesto.githubPrUrl}
+
+ご提案ありがとうございました🙇‍♂️
+引き続き皆様の政策提案、お待ちしております😊
+`;
+
+        const result = await notificationService.notify(text);
 
         if (result.success) {
           if (isNew) {

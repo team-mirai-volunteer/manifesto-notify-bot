@@ -44,16 +44,16 @@ export function createXClient(): XClient {
         }
       },
     };
-  } else {
-    return {
-      tweet: (text: string): Promise<PostResult> => {
-        return Promise.resolve({
-          data: {
-            id: '1942491313124851933', // モック用のID
-            text,
-          },
-        });
-      },
-    };
   }
+
+  return {
+    tweet: (text: string): Promise<PostResult> => {
+      return Promise.resolve({
+        data: {
+          id: '1942491313124851933', // モック用のID
+          text,
+        },
+      });
+    },
+  };
 }
