@@ -23,9 +23,12 @@ Deno.test('マニフェスト通知ハンドラー', async (t) => {
   };
 
   const mockLLMService: LLMService = {
-    generateSummary() {
-      return Promise.resolve('テスト要約');
+    generateSummary(): Promise<string> {
+      return Promise.resolve('Mock summary');
     },
+    generatePolicyDiffSummary(diff: string, title: string): Promise<string> {
+      return Promise.resolve(`Mock policy diff summary: ${title}`);
+    }
   };
 
   const mockNotificationService: NotificationService = {
