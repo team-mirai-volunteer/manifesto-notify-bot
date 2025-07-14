@@ -77,6 +77,25 @@ $ deno run test src/repositories/manifesto.test.ts
 $ deno run check
 ```
 
+### 過去のPRをインポート
+
+マージ済みのPRからマニフェストと通知履歴を作成するスクリプト：
+
+```bash
+# PR URLを指定して実行
+$ deno task import-pr https://github.com/team-mirai/policy/pull/123
+
+# または直接実行
+$ deno run --unstable-kv --env-file --allow-net --allow-env --allow-read src/scripts/import_merged_pr.ts https://github.com/team-mirai/policy/pull/123
+```
+
+**注意事項：**
+
+- マージ済みのPRのみインポート可能
+- 既存のマニフェストがある場合はスキップ
+- 実際のX投稿は行わず、履歴のみ作成（postUrlは空文字）
+- OpenAI APIキーとGitHub Token（プライベートリポジトリの場合）が必要
+
 ## プロジェクト構造
 
 ```
