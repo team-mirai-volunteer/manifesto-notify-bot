@@ -50,7 +50,7 @@ Deno.test('通知履歴一覧取得ハンドラー', async (t) => {
     assertEquals(body.histories[0].id, 'history-1');
     assertEquals(body.histories[1].id, 'history-2');
 
-    await kv.close();
+    kv.close();
   });
 
   await t.step('manifestoIdでフィルタリングできる', async () => {
@@ -106,7 +106,7 @@ Deno.test('通知履歴一覧取得ハンドラー', async (t) => {
     assertEquals(body.histories[0].manifestoId, 'manifesto-1');
     assertEquals(body.histories[1].manifestoId, 'manifesto-1');
 
-    await kv.close();
+    kv.close();
   });
 
   await t.step('platformでフィルタリングできる', async () => {
@@ -145,7 +145,7 @@ Deno.test('通知履歴一覧取得ハンドラー', async (t) => {
     assertEquals(body.histories.length, 1);
     assertEquals(body.histories[0].platform, 'x');
 
-    await kv.close();
+    kv.close();
   });
 
   await t.step('通知履歴が存在しない場合は空配列を返す', async () => {
@@ -166,6 +166,6 @@ Deno.test('通知履歴一覧取得ハンドラー', async (t) => {
     const body = await res.json();
     assertEquals(body.histories.length, 0);
 
-    await kv.close();
+    kv.close();
   });
 });

@@ -1,5 +1,7 @@
 export type PullRequestInfo = {
+  url: string;
   title: string;
+  body: string;
   diff: string;
 };
 
@@ -34,6 +36,7 @@ export function createGitHubService(
         headers['Authorization'] = `Bearer ${githubToken}`;
       }
 
+      console.log('Fetching PR data from:', apiUrl);
       const prResponse = await fetchFn(apiUrl, { headers });
 
       if (!prResponse.ok) {
@@ -65,7 +68,9 @@ export function createGitHubService(
       const diff = await diffResponse.text();
 
       return {
+        url: prUrl,
         title: prData.title,
+        body: prData.body || '',
         diff,
       };
     },

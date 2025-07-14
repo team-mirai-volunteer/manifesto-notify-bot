@@ -20,7 +20,7 @@ export async function createApp(kv?: Deno.Kv): Promise<Hono> {
   // 依存関係の構築
   const githubToken = Deno.env.get('GITHUB_TOKEN');
 
-  const llmService = createLLMService();
+  const llmService = createLLMService(config.isProd());
   const githubService = createGitHubService(fetch, githubToken);
 
   const kvInstance = kv || await Deno.openKv();
@@ -44,6 +44,7 @@ export async function createApp(kv?: Deno.Kv): Promise<Hono> {
 
   // API認証ミドルウェア
   if (config.isProd()) {
+    console.log('Production mode: Enabling API token authentication');
     const apiToken = Deno.env.get('API_TOKEN');
     if (!apiToken) {
       throw new Error('API_TOKEN environment variable is required');

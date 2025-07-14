@@ -253,6 +253,5 @@ deno test src/repositories/manifesto.test.ts --allow-env --unstable-kv
 
 ## 参考資料
 
-- [システムシーケンス図](./sequence-diagram.md)
 - [Hono公式ドキュメント](https://hono.dev/)
 - [Deno KVドキュメント](https://docs.deno.com/kv/manual/)

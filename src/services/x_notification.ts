@@ -1,5 +1,6 @@
 import { XClient } from '../repositories/x.ts';
 import type { NotificationResult, NotificationService } from './notification.ts';
+import { Manifesto } from '../types/models/manifesto.ts';
 
 export type XNotificationConfig = {
   apiKey: string;
@@ -10,17 +11,20 @@ export type XNotificationConfig = {
 
 export function createXNotificationService(client: XClient): NotificationService {
   return {
-    async notify(title: string, content: string): Promise<NotificationResult> {
+    async notify(manifesto: Manifesto): Promise<NotificationResult> {
       try {
-        // タイトルと内容を結合
-        let text = `${title}\n\n${content}`;
+        const text = `
+皆様の政策提案がマニフェストに取り込まれました🎉
 
-        // 280文字を超える場合は切り詰める
-        if (text.length > 130) {
-          text = text.substring(0, 130) + '...';
-        }
+✅ 要約: ${manifesto.summary}
+📝 詳細: ${manifesto.githubPrUrl}
+
+ご提案ありがとうございました🙇‍♂️
+引き続き皆様の政策提案、お待ちしております😊
+`;
 
         const post = await client.tweet(text);
+        console.log(`Posted to X:` + JSON.stringify(post));
 
         return {
           success: true,

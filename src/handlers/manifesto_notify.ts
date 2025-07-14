@@ -34,31 +34,38 @@ export function createManifestoNotifyHandler(
       try {
         const validInput = await c.req.json<NotifyManifestoInput>();
 
-        // PR URLでマニフェストを検索
         let manifesto = await manifestoRepo.findByPrUrl(validInput.githubPrUrl);
 
-        // 存在しない場合は新規作成
+        let isNew = false;
         if (!manifesto) {
-          const prData = await githubService.getPullRequest(validInput.githubPrUrl);
-          const summary = await llmService.generateSummary(prData.diff);
+          isNew = true;
+
+          const pr = await githubService.getPullRequest(validInput.githubPrUrl);
+          const summary = await llmService.generateSummary(pr);
 
           manifesto = {
             id: crypto.randomUUID(),
-            title: prData.title,
+            title: pr.title,
             summary,
-            content: prData.diff,
+            diff: pr.diff,
             githubPrUrl: validInput.githubPrUrl,
             createdAt: new Date(),
           };
-
-          await manifestoRepo.save(manifesto);
+          if (manifesto.summary.includes('要約対象外')) {
+            const message = 'This PR is not suitable for notification.';
+            console.log(message);
+            return c.json({ message }, 200);
+          }
         }
 
-        // X（Twitter）に通知
-        const result = await notificationService.notify(manifesto.title, manifesto.summary);
+        const result = await notificationService.notify(manifesto);
 
-        // 成功した場合のみ通知履歴を保存
         if (result.success) {
+          if (isNew) {
+            await manifestoRepo.save(manifesto);
+            console.log('New manifesto created:', manifesto.id);
+          }
+
           const history: NotificationHistory = {
             id: crypto.randomUUID(),
             manifestoId: manifesto.id,
@@ -69,6 +76,7 @@ export function createManifestoNotifyHandler(
           };
 
           await historyRepo.save(history);
+          console.log('Notification history saved:', history);
         }
 
         return c.json({

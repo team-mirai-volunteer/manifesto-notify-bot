@@ -1,16 +1,24 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@openai/openai@^5.9.0": "5.9.0",
     "jsr:@std/assert@*": "1.0.13",
     "jsr:@std/assert@1": "1.0.13",
     "jsr:@std/internal@^1.0.6": "1.0.8",
     "npm:@hono/zod-validator@0.7": "0.7.0_hono@4.8.4_zod@3.25.75",
+    "npm:@types/node@*": "22.13.13",
     "npm:hono@4": "4.8.4",
     "npm:twitter-api-v2@*": "1.24.0",
     "npm:twitter-api-v2@^1.24.0": "1.24.0",
     "npm:zod@3": "3.25.75"
   },
   "jsr": {
+    "@openai/openai@5.9.0": {
+      "integrity": "88fddee6b660fbfa415e0896484de032cac1768c35eeb4e7330323086256c4d6",
+      "dependencies": [
+        "npm:zod"
+      ]
+    },
     "@std/assert@1.0.13": {
       "integrity": "ae0d31e41919b12c656c742b22522c32fb26ed0cba32975cb0de2a273cb68b29",
       "dependencies": [
@@ -29,11 +37,20 @@
         "zod"
       ]
     },
+    "@types/node@22.13.13": {
+      "integrity": "sha512-ClsL5nMwKaBRwPcCvH8E7+nU4GxHVx1axNvMZTFHMEfNI7oahimt26P5zjVCRrjiIWj6YFXfE1v3dEp94wLcGQ==",
+      "dependencies": [
+        "undici-types"
+      ]
+    },
     "hono@4.8.4": {
       "integrity": "sha512-KOIBp1+iUs0HrKztM4EHiB2UtzZDTBihDtOF5K6+WaJjCPeaW4Q92R8j63jOhvJI5+tZSMuKD9REVEXXY9illg=="
     },
     "twitter-api-v2@1.24.0": {
       "integrity": "sha512-RDEiuNwnFirvf4c5f1sysgg0rfMQgekXgKt+/UdbNu+Bs5bJ1VbXkqKzdd2a2lPMlDVDbdGUoe2pOd4n25fFVQ=="
+    },
+    "undici-types@6.20.0": {
+      "integrity": "sha512-Ny6QZ2Nju20vw1SRHe3d9jVu6gJ+4e3+MMpqu7pqE5HT6WsTSlce++GQmK5UXS8mzV8DSYHrQH+Xrf2jVcuKNg=="
     },
     "zod@3.25.75": {
       "integrity": "sha512-OhpzAmVzabPOL6C3A3gpAifqr9MqihV/Msx3gor2b2kviCgcb+HM9SEOpMWwwNp9MRunWnhtAKUoo0AHhjyPPg=="
@@ -41,6 +58,7 @@
   },
   "workspace": {
     "dependencies": [
+      "jsr:@openai/openai@^5.9.0",
       "jsr:@std/assert@1",
       "npm:@hono/zod-validator@0.7",
       "npm:hono@4",
