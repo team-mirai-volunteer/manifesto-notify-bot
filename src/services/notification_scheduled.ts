@@ -64,7 +64,7 @@ export function createScheduledPostService(
 
         const text = `
 ⏳マニフェストの進化の歴史をご紹介⏳
-${manifesto.createdAt}: ${manifesto.summary}
+${manifesto.createdAt.getMonth() + 1}/${manifesto.createdAt.getDate()}: ${manifesto.summary}
 📝 詳細: ${manifesto.githubPrUrl}
 `;
 
