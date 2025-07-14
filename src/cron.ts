@@ -23,8 +23,8 @@ export async function registerCronJobs() {
     notificationService,
   );
 
-  // 1時間ごとに定期ポストを実行（毎時0分）
-  Deno.cron('scheduled-manifesto-post', '0 * * * *', scheduledPostService.notify);
+  // SNSが活発な時間帯に定期ポストを実行（朝の通勤時間、昼休み、夕方）
+  Deno.cron('scheduled-manifesto-post', '0 8,12,18 * * *', scheduledPostService.notify);
 
-  console.log('✅ Scheduled post cron job registered (every hour at :00)');
+  console.log('✅ Scheduled post cron job registered (at 8:00, 12:00, 18:00 - peak SNS hours)');
 }

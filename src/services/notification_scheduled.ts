@@ -63,13 +63,9 @@ export function createScheduledPostService(
         console.log(`[Scheduled Post] Selected manifesto: ${manifesto.title}`);
 
         const text = `
-【定期】取り込まれたマニフェストの紹介🎉
-
-✅ 要約: ${manifesto.summary}
+⏳マニフェストの進化の歴史をご紹介⏳
+${manifesto.createdAt}: ${manifesto.summary}
 📝 詳細: ${manifesto.githubPrUrl}
-
-ご提案ありがとうございました🙇‍♂️
-引き続き皆様の政策提案、お待ちしております😊
 `;
 
         // 通知を送信
