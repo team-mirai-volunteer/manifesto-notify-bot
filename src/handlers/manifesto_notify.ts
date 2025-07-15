@@ -50,6 +50,8 @@ export function createManifestoNotifyHandler(
             diff: pr.diff,
             githubPrUrl: validInput.githubPrUrl,
             createdAt: new Date(),
+            changed_files: pr.changed_files,
+            is_old: false,
           };
           if (manifesto.summary.includes('要約対象外')) {
             const message = 'This PR is not suitable for notification.';
@@ -72,6 +74,16 @@ export function createManifestoNotifyHandler(
 
         if (result.success) {
           if (isNew) {
+            // 同じファイルを変更する既存マニフェストをis_old=trueに更新
+            const overlappingManifestos = await manifestoRepo.findByChangedFiles(
+              manifesto.changed_files,
+            );
+            for (const oldManifesto of overlappingManifestos) {
+              oldManifesto.is_old = true;
+              await manifestoRepo.update(oldManifesto);
+              console.log(`Marked manifesto ${oldManifesto.id} as old`);
+            }
+
             await manifestoRepo.save(manifesto);
             console.log('New manifesto created:', manifesto.id);
           }

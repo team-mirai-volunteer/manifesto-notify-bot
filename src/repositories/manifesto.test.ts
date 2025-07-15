@@ -10,6 +10,8 @@ const TEST_MANIFESTO: Manifesto = {
   diff: 'これはテスト用のマニフェストの内容です',
   githubPrUrl: 'https://github.com/team-mirai/policy/pull/1',
   createdAt: new Date('2024-01-01T00:00:00Z'),
+  changed_files: [],
+  is_old: false,
 };
 
 Deno.test('マニフェストリポジトリ', async (t) => {
@@ -93,5 +95,114 @@ Deno.test('マニフェストリポジトリ', async (t) => {
 
     const all = await repo.findAll();
     assertEquals(all, []);
+  });
+
+  await t.step('changed_filesでマニフェストを検索', async () => {
+    using kv = await Deno.openKv(':memory:');
+    const repo = createManifestoRepository(kv);
+
+    // 複数のマニフェストを保存
+    const manifesto1 = {
+      ...TEST_MANIFESTO,
+      id: 'test-1',
+      changed_files: [
+        { path: 'src/file1.ts', startLine: 10, endLine: 20 },
+        { path: 'src/file2.ts', startLine: 5, endLine: 15 },
+      ],
+    };
+    const manifesto2 = {
+      ...TEST_MANIFESTO,
+      id: 'test-2',
+      githubPrUrl: 'https://github.com/team-mirai/policy/pull/2',
+      changed_files: [
+        { path: 'src/file1.ts', startLine: 25, endLine: 30 },
+        { path: 'src/file3.ts', startLine: 1, endLine: 10 },
+      ],
+    };
+    const manifesto3 = {
+      ...TEST_MANIFESTO,
+      id: 'test-3',
+      githubPrUrl: 'https://github.com/team-mirai/policy/pull/3',
+      changed_files: [
+        { path: 'src/file4.ts', startLine: 1, endLine: 100 },
+      ],
+    };
+
+    await repo.save(manifesto1);
+    await repo.save(manifesto2);
+    await repo.save(manifesto3);
+
+    // file1.tsを変更するマニフェストを検索
+    const found = await repo.findByChangedFiles([
+      { path: 'src/file1.ts', startLine: 15, endLine: 25 },
+    ]);
+
+    assertEquals(found.length, 2);
+    const foundIds = found.map((m) => m.id).sort();
+    assertEquals(foundIds, ['test-1', 'test-2']);
+  });
+
+  await t.step('行範囲が重複するマニフェストを検索', async () => {
+    using kv = await Deno.openKv(':memory:');
+    const repo = createManifestoRepository(kv);
+
+    const manifesto1 = {
+      ...TEST_MANIFESTO,
+      id: 'test-1',
+      changed_files: [
+        { path: 'src/config.ts', startLine: 10, endLine: 20 },
+      ],
+    };
+    const manifesto2 = {
+      ...TEST_MANIFESTO,
+      id: 'test-2',
+      githubPrUrl: 'https://github.com/team-mirai/policy/pull/2',
+      changed_files: [
+        { path: 'src/config.ts', startLine: 15, endLine: 25 },
+      ],
+    };
+    const manifesto3 = {
+      ...TEST_MANIFESTO,
+      id: 'test-3',
+      githubPrUrl: 'https://github.com/team-mirai/policy/pull/3',
+      changed_files: [
+        { path: 'src/config.ts', startLine: 30, endLine: 40 },
+      ],
+    };
+
+    await repo.save(manifesto1);
+    await repo.save(manifesto2);
+    await repo.save(manifesto3);
+
+    // 行範囲18-22を変更（manifesto1とmanifesto2と重複）
+    const found = await repo.findByChangedFiles([
+      { path: 'src/config.ts', startLine: 18, endLine: 22 },
+    ]);
+
+    assertEquals(found.length, 2);
+    const foundIds = found.map((m) => m.id).sort();
+    assertEquals(foundIds, ['test-1', 'test-2']);
+  });
+
+  await t.step('updateメソッドでマニフェストを更新', async () => {
+    using kv = await Deno.openKv(':memory:');
+    const repo = createManifestoRepository(kv);
+
+    // 保存
+    await repo.save(TEST_MANIFESTO);
+
+    // 更新
+    const updated = {
+      ...TEST_MANIFESTO,
+      is_old: true,
+      summary: '更新された要約',
+    };
+    await repo.update(updated);
+
+    // 取得して検証
+    const found = await repo.findById(TEST_MANIFESTO.id);
+    assertExists(found);
+    assertEquals(found.is_old, true);
+    assertEquals(found.summary, '更新された要約');
   });
 });
