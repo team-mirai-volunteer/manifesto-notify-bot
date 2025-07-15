@@ -20,6 +20,7 @@ Deno.test('マニフェスト通知ハンドラー', async (t) => {
         title: 'テストPR',
         body: 'テストPRの内容',
         diff: 'テスト変更差分',
+        changed_files: [],
       });
     },
   };
@@ -48,6 +49,8 @@ Deno.test('マニフェスト通知ハンドラー', async (t) => {
       diff: 'テスト内容',
       githubPrUrl: 'https://github.com/test/repo/pull/123',
       createdAt: new Date(),
+      changed_files: [],
+      is_old: false,
     };
     await manifestoRepo.save(existingManifesto);
 
@@ -296,6 +299,86 @@ Deno.test('マニフェスト通知ハンドラー', async (t) => {
       h.githubPrUrl === 'https://github.com/test/repo/pull/999'
     );
     assertEquals(failedHistory, undefined);
+  });
+
+  await t.step('同じファイルを変更する既存マニフェストをis_old=trueに更新', async () => {
+    // 既存のマニフェストを2つ保存
+    const oldManifesto1: Manifesto = {
+      id: 'old-1',
+      title: '古いマニフェスト1',
+      summary: '古い要約1',
+      diff: '古い内容1',
+      githubPrUrl: 'https://github.com/test/repo/pull/100',
+      createdAt: new Date('2024-01-01'),
+      changed_files: [
+        { path: 'src/config.ts', startLine: 10, endLine: 20 },
+        { path: 'src/utils.ts', startLine: 5, endLine: 15 },
+      ],
+      is_old: false,
+    };
+    const oldManifesto2: Manifesto = {
+      id: 'old-2',
+      title: '古いマニフェスト2',
+      summary: '古い要約2',
+      diff: '古い内容2',
+      githubPrUrl: 'https://github.com/test/repo/pull/101',
+      createdAt: new Date('2024-01-02'),
+      changed_files: [
+        { path: 'src/config.ts', startLine: 25, endLine: 30 },
+        { path: 'src/main.ts', startLine: 1, endLine: 10 },
+      ],
+      is_old: false,
+    };
+    await manifestoRepo.save(oldManifesto1);
+    await manifestoRepo.save(oldManifesto2);
+
+    // config.tsを変更する新しいPRを通知
+    const app = new Hono();
+    const mockGitHubServiceWithFiles: GitHubService = {
+      getPullRequest() {
+        return Promise.resolve({
+          url: '',
+          title: '新しいPR',
+          body: '新しいPRの内容',
+          diff: '新しい変更差分',
+          changed_files: [
+            { path: 'src/config.ts', startLine: 15, endLine: 25 },
+          ],
+        });
+      },
+    };
+
+    const handler = createManifestoNotifyHandler(
+      manifestoRepo,
+      historyRepo,
+      mockGitHubServiceWithFiles,
+      mockLLMService,
+      mockNotificationService,
+    );
+
+    app.post('/notify', ...handler);
+
+    const res = await app.request('/notify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        githubPrUrl: 'https://github.com/test/repo/pull/200',
+      }),
+    });
+
+    assertEquals(res.status, 200);
+
+    // 古いマニフェストがis_old=trueに更新されたことを確認
+    const updated1 = await manifestoRepo.findById('old-1');
+    const updated2 = await manifestoRepo.findById('old-2');
+    assertEquals(updated1?.is_old, true);
+    assertEquals(updated2?.is_old, true);
+
+    // 新しいマニフェストはis_old=falseで保存されていることを確認
+    const newManifesto = await manifestoRepo.findByPrUrl('https://github.com/test/repo/pull/200');
+    assertEquals(newManifesto?.is_old, false);
   });
 
   await t.step('GitHubサービスがエラーの場合は500エラー', async () => {

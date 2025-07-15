@@ -1,6 +1,7 @@
 import type { NotificationHistoryRepository } from '../repositories/notification_history.ts';
 import type { ManifestoRepository } from '../repositories/manifesto.ts';
 import type { NotificationService } from './notification.ts';
+import type { Manifesto } from '../types/models/manifesto.ts';
 
 export function createScheduledPostService(
   manifestoRepo: ManifestoRepository,
@@ -42,23 +43,29 @@ export function createScheduledPostService(
           return;
         }
 
-        // 利用可能なマニフェストIDをシャッフル
-        const shuffled = [...availableManifestoIds];
+        // 利用可能なマニフェストを取得し、is_old=falseのものだけをフィルタ
+        const manifestoPromises = availableManifestoIds.map((id) => manifestoRepo.findById(id));
+        const manifestos = await Promise.all(manifestoPromises);
+        const availableManifestos = manifestos.filter(
+          (manifesto): manifesto is Manifesto => manifesto !== null && !manifesto.is_old,
+        );
+
+        if (availableManifestos.length === 0) {
+          console.log(
+            '[Scheduled Post] No available manifestos (all are old or in recent 2 posts). Skipping.',
+          );
+          return;
+        }
+
+        // 利用可能なマニフェストをシャッフル
+        const shuffled = [...availableManifestos];
         for (let i = shuffled.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
         }
 
         // シャッフルした配列から最初の1つを選択
-        const selectedManifestoId = shuffled[0];
-
-        // マニフェストを取得
-        const manifesto = await manifestoRepo.findById(selectedManifestoId);
-
-        if (!manifesto) {
-          console.error(`[Scheduled Post] Manifesto not found: ${selectedManifestoId}`);
-          return;
-        }
+        const manifesto = shuffled[0];
 
         console.log(`[Scheduled Post] Selected manifesto: ${manifesto.title}`);
 
