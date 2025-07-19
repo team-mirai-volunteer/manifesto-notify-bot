@@ -1,4 +1,5 @@
 import OpenAI from '@openai/openai';
+import { delay } from '@std/async';
 import { PullRequestInfo } from './github.ts';
 
 const INSTRUCTIONS = `
@@ -43,6 +44,114 @@ export type LLMService = {
   generateSummary(pr: PullRequestInfo): Promise<string>;
 };
 
+// OpenAI APIのレスポンス型
+export type OpenAIResponse = {
+  choices: Array<{
+    message: {
+      content: string | null;
+    };
+  }>;
+};
+
+// OpenAI APIを呼び出す関数の型
+export type OpenAIClient = {
+  chat: {
+    completions: {
+      create(params: {
+        model: string;
+        messages: Array<{ role: string; content: string }>;
+      }): Promise<OpenAIResponse>;
+    };
+  };
+};
+
+// リトライ可能かどうかを判定する関数
+export function isRetryableError(error: unknown): boolean {
+  if (error && typeof error === 'object' && 'status' in error) {
+    const status = (error as { status: number }).status;
+    // リトライ可能なステータスコード（403を追加）
+    const retryableStatuses = [403, 429, 500, 502, 503, 504];
+    return retryableStatuses.includes(status);
+  }
+  return false;
+}
+
+// リトライオプションの型定義
+export type RetryOptions = {
+  maxAttempts?: number;
+  minTimeout?: number;
+  maxTimeout?: number;
+  multiplier?: number;
+  jitter?: number;
+};
+
+// OpenAI APIを呼び出してコンテンツを取得する関数
+export async function callOpenAIWithRetry(
+  openai: OpenAIClient,
+  messages: Array<{ role: string; content: string }>,
+  model: string,
+  retryOptions: RetryOptions,
+): Promise<string> {
+  const maxAttempts = retryOptions.maxAttempts || 3;
+  const minTimeout = retryOptions.minTimeout || 1000;
+  const maxTimeout = retryOptions.maxTimeout || 4000;
+  const multiplier = retryOptions.multiplier || 2;
+  const jitter = retryOptions.jitter || 1;
+
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      const resp = await openai.chat.completions.create({
+        model,
+        messages,
+      });
+
+      const content = resp.choices.shift()?.message.content;
+      if (!content) {
+        console.warn('No choices returned from OpenAI API');
+        throw new Error('No content in OpenAI response');
+      }
+
+      return content;
+    } catch (error) {
+      lastError = error;
+
+      // エラーログを出力
+      if (error && typeof error === 'object' && 'status' in error) {
+        const status = (error as { status: number }).status;
+        console.error(`OpenAI API error - Status: ${status}`, error);
+
+        // リトライ不可能なエラーは詳細をログに記録
+        if (status === 401) {
+          console.error('OpenAI API authentication failed (401) - check API key');
+        }
+      }
+
+      // リトライ不可能なエラーの場合は即座に失敗
+      if (!isRetryableError(error)) {
+        throw error;
+      }
+
+      // 最後の試行の場合はリトライしない
+      if (attempt === maxAttempts - 1) {
+        break;
+      }
+
+      // リトライ間隔の計算
+      let timeout = Math.min(minTimeout * Math.pow(multiplier, attempt), maxTimeout);
+      if (jitter) {
+        timeout = timeout * (0.5 + Math.random() * jitter);
+      }
+
+      await delay(timeout);
+    }
+  }
+
+  // すべてのリトライが失敗した場合
+  throw lastError;
+}
+
 export function createLLMService(isProd: boolean): LLMService {
   if (isProd) {
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
@@ -74,24 +183,40 @@ export function createLLMService(isProd: boolean): LLMService {
   ${pr.diff}
 `;
 
-        try {
-          const resp = await openai.chat.completions.create({
-            model: 'o3-mini',
-            messages: [
-              { role: 'system', content: INSTRUCTIONS },
-              { role: 'user', content: input },
-            ],
-          });
+        const retryOptions: RetryOptions = {
+          maxAttempts: 3,
+          minTimeout: 1000, // 初期遅延: 1秒
+          multiplier: 2, // 2倍ずつ増加
+          maxTimeout: 4000, // 最大遅延: 4秒
+          jitter: 1, // ジッターを追加してサーバー負荷を分散
+        };
 
-          const summary = resp.choices.shift()?.message.content;
-          if (!summary) {
-            console.warn('No choices returned from OpenAI API');
-            return fallback(pr);
-          }
+        try {
+          const messages = [
+            { role: 'system', content: INSTRUCTIONS },
+            { role: 'user', content: input },
+          ];
+
+          const summary = await callOpenAIWithRetry(
+            openai,
+            messages,
+            'o3-mini',
+            retryOptions,
+          );
 
           return summary;
         } catch (error) {
-          console.error('Error generating summary:', error);
+          console.error('Error generating summary after all retries:', error);
+
+          // エラーメッセージをチェックしてログに詳細を記録
+          if (error instanceof Error) {
+            if (error.message.includes('429') || error.message.includes('rate limit')) {
+              console.error('OpenAI API rate limit exceeded');
+            } else if (error.message.includes('timeout')) {
+              console.error('OpenAI API request timed out');
+            }
+          }
+
           return fallback(pr);
         }
       },
