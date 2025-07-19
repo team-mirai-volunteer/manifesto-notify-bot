@@ -54,7 +54,8 @@ export type OpenAIResponse = {
 };
 
 // OpenAI APIを呼び出す関数の型
-export type OpenAIClient = {
+// 実際のOpenAI SDKではなく、テスト用の簡略化されたインターフェース
+export interface OpenAIClient {
   chat: {
     completions: {
       create(params: {
@@ -63,7 +64,7 @@ export type OpenAIClient = {
       }): Promise<OpenAIResponse>;
     };
   };
-};
+}
 
 // リトライ可能かどうかを判定する関数
 export function isRetryableError(error: unknown): boolean {
@@ -86,8 +87,8 @@ export type RetryOptions = {
 };
 
 // OpenAI APIを呼び出してコンテンツを取得する関数
-export async function callOpenAIWithRetry(
-  openai: OpenAIClient,
+export async function callOpenAIWithRetry<T extends OpenAIClient>(
+  openai: T,
   messages: Array<{ role: string; content: string }>,
   model: string,
   retryOptions: RetryOptions,
@@ -198,7 +199,7 @@ export function createLLMService(isProd: boolean): LLMService {
           ];
 
           const summary = await callOpenAIWithRetry(
-            openai,
+            openai as unknown as OpenAIClient,
             messages,
             'o3-mini',
             retryOptions,
