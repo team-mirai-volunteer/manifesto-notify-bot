@@ -45,16 +45,30 @@ export type LLMService = {
 };
 
 // OpenAI APIのレスポンス型
-export type OpenAIResponse = {
+export interface OpenAIResponse {
+  id?: string;
+  object?: string;
+  created?: number;
+  model?: string;
   choices: Array<{
+    index?: number;
     message: {
+      role?: string;
       content: string | null;
+      name?: string;
+      function_call?: unknown;
     };
+    finish_reason?: string | null;
   }>;
-};
+  usage?: {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    total_tokens?: number;
+  };
+}
 
 // OpenAI APIを呼び出す関数の型
-// 実際のOpenAI SDKではなく、テスト用の簡略化されたインターフェース
+// テスト用の簡略化されたインターフェース
 export interface OpenAIClient {
   chat: {
     completions: {
@@ -87,8 +101,8 @@ export type RetryOptions = {
 };
 
 // OpenAI APIを呼び出してコンテンツを取得する関数
-export async function callOpenAIWithRetry<T extends OpenAIClient>(
-  openai: T,
+export async function callOpenAIWithRetry(
+  openai: OpenAIClient,
   messages: Array<{ role: string; content: string }>,
   model: string,
   retryOptions: RetryOptions,
@@ -153,6 +167,31 @@ export async function callOpenAIWithRetry<T extends OpenAIClient>(
   throw lastError;
 }
 
+// OpenAI SDKのアダプター
+function createOpenAIAdapter(openai: OpenAI): OpenAIClient {
+  return {
+    chat: {
+      completions: {
+        async create(
+          params: { model: string; messages: Array<{ role: string; content: string }> },
+        ) {
+          // OpenAI SDKの型に合わせてメッセージを変換
+          const messages = params.messages.map((msg) => ({
+            role: msg.role as 'system' | 'user' | 'assistant',
+            content: msg.content,
+          }));
+
+          const response = await openai.chat.completions.create({
+            model: params.model,
+            messages,
+          });
+          return response as unknown as OpenAIResponse;
+        },
+      },
+    },
+  };
+}
+
 export function createLLMService(isProd: boolean): LLMService {
   if (isProd) {
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
@@ -164,6 +203,8 @@ export function createLLMService(isProd: boolean): LLMService {
       apiKey: openaiApiKey,
       baseURL: 'https://openrouter.ai/api/v1',
     });
+
+    const openaiClient = createOpenAIAdapter(openai);
 
     return {
       async generateSummary(pr: PullRequestInfo): Promise<string> {
@@ -199,7 +240,7 @@ export function createLLMService(isProd: boolean): LLMService {
           ];
 
           const summary = await callOpenAIWithRetry(
-            openai as unknown as OpenAIClient,
+            openaiClient,
             messages,
             'o3-mini',
             retryOptions,
