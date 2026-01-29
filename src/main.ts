@@ -8,7 +8,8 @@ try {
 
   console.log(`🚀 Server is running on http://localhost:${port}`);
 
-  registerCronJobs();
+  // cron は一旦停止
+  // registerCronJobs();
 
   // サーバーの起動
   Deno.serve({ port }, app.fetch);
