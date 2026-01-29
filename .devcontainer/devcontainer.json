@@ -1,0 +1,15 @@
+{
+  "name": "Deno",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+
+  // Set *default* container specific settings.json values on container create.
+  "customizations": {
+    "vscode": {
+      "extensions": ["denoland.vscode-deno"],
+      "settings": { "terminal.integrated.shell.linux": "/bin/bash" }
+    }
+  },
+  "postCreateCommand": "deno install"
+}
