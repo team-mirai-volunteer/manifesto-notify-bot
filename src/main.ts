@@ -1,5 +1,5 @@
 import { createApp } from './app.ts';
-import { registerCronJobs } from './cron.ts';
+// import { registerCronJobs } from './cron.ts';
 
 try {
   const app = await createApp();

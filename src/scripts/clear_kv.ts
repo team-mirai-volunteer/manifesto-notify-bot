@@ -4,7 +4,7 @@
  * 使用方法:
  *   ローカルのKVをクリア:
  *   deno task clear-kv
- 
+
  * .env に
  * DENO_KV_ACCESS_TOKEN=your-access-token
  # (https://dash.deno.com/account#access-tokens でキーを発行)
@@ -25,7 +25,8 @@ async function clearAllKvData(connectionUrl?: string) {
   let kv: Deno.Kv;
   try {
     kv = await Deno.openKv(connectionUrl);
-  } catch (error) {
+  } catch (error_) {
+    const error = error_ as Error;
     console.error(`❌ Failed to connect to KV store: ${error.message}`);
     if (connectionUrl) {
       console.log(

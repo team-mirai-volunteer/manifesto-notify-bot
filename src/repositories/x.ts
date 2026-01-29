@@ -1,4 +1,4 @@
-import { TwitterApi } from 'npm:twitter-api-v2';
+import { TwitterApi } from 'twitter-api-v2';
 import { config } from '../config.ts';
 
 type PostResult = {

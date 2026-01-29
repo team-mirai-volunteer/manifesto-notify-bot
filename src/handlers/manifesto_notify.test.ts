@@ -1,4 +1,4 @@
-import { assertEquals } from 'jsr:@std/assert';
+import { assertEquals } from '@std/assert';
 import { Hono } from 'hono';
 import { createManifestoNotifyHandler } from './manifesto_notify.ts';
 import { createManifestoRepository } from '../repositories/manifesto.ts';
