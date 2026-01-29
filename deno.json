@@ -1,10 +1,11 @@
 {
   "tasks": {
-    "dev": "deno run --unstable-kv --env-file --allow-net --allow-env --allow-read --env-file --watch src/main.ts",
-    "test": "deno test --unstable-kv --allow-all",
-    "check": "deno lint && deno fmt --check",
+    "dev": "deno run --allow-net --allow-env --allow-read --env-file --watch src/main.ts",
+    "test": "deno test",
+    "check": "deno lint && deno fmt --check && deno check && deno test",
     "deploy": "deployctl deploy --org team-mirai --project manifesto-notify --prod",
-    "import-pr": "deno run --unstable-kv --env-file --allow-net --allow-env --allow-read src/scripts/import_merged_pr.ts"
+    "import-pr": "deno run --unstable-kv --env-file --allow-net --allow-env --allow-read src/scripts/import_merged_pr.ts",
+    "clear-kv": "deno run --env-file -P=prod src/scripts/clear_kv.ts"
   },
   "imports": {
     "@openai/openai": "jsr:@openai/openai@^5.9.0",
@@ -23,17 +24,15 @@
     }
   },
   "fmt": {
-    "useTabs": false,
     "lineWidth": 100,
-    "indentWidth": 2,
     "singleQuote": true
   },
-  "deploy": {
-    "project": "dad5dffa-ef78-4880-96c5-d7724fd55685",
-    "exclude": [
-      "**/node_modules"
-    ],
-    "include": [],
-    "entrypoint": "src/main.ts"
+  "unstable": ["kv"],
+  "permissions": {
+    "default": {},
+    "prod": {
+      "net": ["api.deno.com", "*.deno-gcp.net"],
+      "env": ["DENO_KV_ACCESS_TOKEN"]
+    }
   }
 }

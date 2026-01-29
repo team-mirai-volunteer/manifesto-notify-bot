@@ -1,23 +1,27 @@
-#!/usr/bin/env -S deno run -A
-
 /**
  * Deno KVのすべてのデータをクリアするスクリプト
  *
  * 使用方法:
- *   # ローカルKV（デフォルト）
- *   deno run --unstable-kv --allow-env --allow-read --allow-write src/scripts/clear_kv.ts
- *
- *   # リモートKV
- *   deno run --unstable-kv --allow-env --allow-read --allow-write src/scripts/clear_kv.ts https://api.deno.com/databases/<database-id>/connect
- *
- * または:
- *   ./src/scripts/clear_kv.ts [connection-url]
+ *   ローカルのKVをクリア:
+ *   deno task clear-kv
+ 
+ * .env に
+ * DENO_KV_ACCESS_TOKEN=your-access-token
+ # (https://dash.deno.com/account#access-tokens でキーを発行)
+ * を設定し
+ * deno task clear-kv https://api.deno.com/databases/69d09b52-6648-4d89-b3e5-3a7119e80f4d/connect
+ * すると本番環境をクリアします。
  */
 
 async function clearAllKvData(connectionUrl?: string) {
   const target = connectionUrl || 'local KV';
   console.log(`🗑️  Clearing all data from Deno KV (${target})...\n`);
 
+  if (connectionUrl && !Deno.env.get('DENO_KV_ACCESS_TOKEN')) {
+    console.log(
+      'Note: Ensure that DENO_KV_ACCESS_TOKEN environment variable is set if required.\n',
+    );
+  }
   let kv: Deno.Kv;
   try {
     kv = await Deno.openKv(connectionUrl);
@@ -80,8 +84,6 @@ async function clearAllKvData(connectionUrl?: string) {
     console.log(`\n✅ Successfully deleted ${deletedCount} entries from KV store.`);
   } catch (error) {
     console.error('\n❌ Error clearing KV data:', error);
-  } finally {
-    kv.close();
   }
 }
 
