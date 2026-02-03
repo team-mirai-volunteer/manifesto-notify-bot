@@ -61,6 +61,8 @@ Deno.test('定期ポストサービス', async (t) => {
         diff: 'diff1',
         githubPrUrl: 'https://github.com/test/repo/pull/1',
         createdAt: new Date(),
+        changed_files: [],
+        is_old: false,
       },
       {
         id: 'manifesto-2',
@@ -69,6 +71,8 @@ Deno.test('定期ポストサービス', async (t) => {
         diff: 'diff2',
         githubPrUrl: 'https://github.com/test/repo/pull/2',
         createdAt: new Date(),
+        changed_files: [],
+        is_old: false,
       },
       {
         id: 'manifesto-3',
@@ -77,6 +81,8 @@ Deno.test('定期ポストサービス', async (t) => {
         diff: 'diff3',
         githubPrUrl: 'https://github.com/test/repo/pull/3',
         createdAt: new Date(),
+        changed_files: [],
+        is_old: false,
       },
     ];
 
@@ -156,6 +162,8 @@ Deno.test('定期ポストサービス', async (t) => {
         diff: `diff${id}`,
         githubPrUrl: `https://github.com/test/repo/pull/${id}`,
         createdAt: new Date(),
+        changed_files: [],
+        is_old: false,
       });
     }
 
@@ -210,6 +218,8 @@ Deno.test('定期ポストサービス', async (t) => {
       diff: 'diff1',
       githubPrUrl: 'https://github.com/test/repo/pull/1',
       createdAt: new Date(),
+      changed_files: [],
+      is_old: false,
     });
 
     // 履歴を作成
@@ -239,6 +249,108 @@ Deno.test('定期ポストサービス', async (t) => {
 
     const histories = await historyRepo.findAll();
     assertEquals(histories.length, 1); // 履歴が増えていない
+
+    kv.close();
+  });
+
+  await t.step('is_old=trueのマニフェストは除外される', async () => {
+    const kv = await Deno.openKv(':memory:');
+    const manifestoRepo = createManifestoRepository(kv);
+    const historyRepo = createNotificationHistoryRepository(kv);
+
+    // 5つのマニフェストを作成（2つはis_old=true）
+    const manifestos: Manifesto[] = [
+      {
+        id: 'manifesto-1',
+        title: 'マニフェスト1',
+        summary: '要約1',
+        diff: 'diff1',
+        githubPrUrl: 'https://github.com/test/repo/pull/1',
+        createdAt: new Date(),
+        changed_files: [],
+        is_old: true, // 古い
+      },
+      {
+        id: 'manifesto-2',
+        title: 'マニフェスト2',
+        summary: '要約2',
+        diff: 'diff2',
+        githubPrUrl: 'https://github.com/test/repo/pull/2',
+        createdAt: new Date(),
+        changed_files: [],
+        is_old: false,
+      },
+      {
+        id: 'manifesto-3',
+        title: 'マニフェスト3',
+        summary: '要約3',
+        diff: 'diff3',
+        githubPrUrl: 'https://github.com/test/repo/pull/3',
+        createdAt: new Date(),
+        changed_files: [],
+        is_old: true, // 古い
+      },
+      {
+        id: 'manifesto-4',
+        title: 'マニフェスト4',
+        summary: '要約4',
+        diff: 'diff4',
+        githubPrUrl: 'https://github.com/test/repo/pull/4',
+        createdAt: new Date(),
+        changed_files: [],
+        is_old: false,
+      },
+      {
+        id: 'manifesto-5',
+        title: 'マニフェスト5',
+        summary: '要約5',
+        diff: 'diff5',
+        githubPrUrl: 'https://github.com/test/repo/pull/5',
+        createdAt: new Date(),
+        changed_files: [],
+        is_old: false,
+      },
+    ];
+
+    for (const manifesto of manifestos) {
+      await manifestoRepo.save(manifesto);
+    }
+
+    // 5件の履歴を作成（直近2件はmanifesto-4とmanifesto-5）
+    const now = new Date();
+    for (let i = 0; i < 5; i++) {
+      await historyRepo.save({
+        id: `history-${i + 1}`,
+        manifestoId: `manifesto-${i + 1}`,
+        githubPrUrl: manifestos[i].githubPrUrl,
+        platform: 'x',
+        postUrl: `https://x.com/test/${i + 1}`,
+        postedAt: new Date(now.getTime() - (4 - i) * 60000), // 古い順に配置
+      });
+    }
+
+    const mockNotificationService = {
+      notify: spy((_text: string) =>
+        Promise.resolve({ success: true as const, url: 'https://x.com/test/new' })
+      ),
+    };
+
+    const service = createScheduledPostService(manifestoRepo, historyRepo, mockNotificationService);
+    await service.notify();
+
+    // notify が呼ばれたことを確認
+    assertEquals(mockNotificationService.notify.calls.length, 1);
+
+    // 渡されたテキストに要約2のみが含まれることを確認（1と3はis_old=true、4と5は直近2件）
+    const notifyText = mockNotificationService.notify.calls[0].args[0] as string;
+    assertEquals(notifyText.includes('要約2'), true);
+    assertEquals(notifyText.includes('要約1'), false);
+    assertEquals(notifyText.includes('要約3'), false);
+    assertEquals(notifyText.includes('要約4'), false);
+    assertEquals(notifyText.includes('要約5'), false);
+
+    const histories = await historyRepo.findAll();
+    assertEquals(histories.length, 6); // 履歴が1つ増えている
 
     kv.close();
   });

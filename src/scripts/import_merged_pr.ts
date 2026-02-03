@@ -45,6 +45,8 @@ export async function importMergedPR(options: ImportPROptions) {
     diff: pr.diff,
     githubPrUrl: prUrl,
     createdAt: existingManifesto?.createdAt || new Date(),
+    changed_files: pr.changed_files,
+    is_old: false,
   };
 
   if (!existingManifesto) {

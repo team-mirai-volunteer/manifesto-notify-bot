@@ -37,6 +37,7 @@ Deno.test('import_merged_pr', async (t) => {
         title: 'テストPR',
         body: 'テスト本文',
         diff: mockDiff,
+        changed_files: [],
       };
 
       // モックサービス
@@ -95,6 +96,8 @@ Deno.test('import_merged_pr', async (t) => {
       assertEquals(manifestoData[0].title, 'テストPR');
       assertEquals(manifestoData[0].summary, 'テスト要約');
       assertEquals(manifestoData[0].diff, mockDiff);
+      assertEquals(manifestoData[0].changed_files, []);
+      assertEquals(manifestoData[0].is_old, false);
 
       // 履歴が保存されたことを確認
       assertEquals(historyData.length, 1);
@@ -115,6 +118,8 @@ Deno.test('import_merged_pr', async (t) => {
         diff: '既存diff',
         githubPrUrl: 'https://github.com/test/repo/pull/1',
         createdAt: new Date('2023-12-01'),
+        changed_files: [],
+        is_old: false,
       };
 
       const existingHistory = {
